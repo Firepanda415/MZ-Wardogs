@@ -58,3 +58,7 @@ node test.mjs
 ## 已验证
 
 `node test.mjs` 检查四个正方向、3-4-5 距离、同点方位、360° 回绕、两种武器的射程边界、输入校验与屏幕坐标变换。浏览器检查覆盖三张地图、320×667 / 390×844 手机视口和桌面、双语、独立锁定、固定地图点选、收藏刷新持久化及地图隔离。手机视口检查不等于在实体 iOS / Android 设备上实测；双指触控仍建议在真机复核。
+
+## Automatic website publishing
+
+Pushes to `main` trigger the `personal-website` publishing workflow via `.github/workflows/publish-website.yml`. Configure the Actions secret `WEBSITE_PUBLISH_TOKEN` with a fine-grained token restricted to `Firepanda415/personal-website`, granting **Actions: Read and write**. Local commits take effect after pushing. Renew this secret when the token expires.
