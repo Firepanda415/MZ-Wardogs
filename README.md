@@ -49,13 +49,11 @@ node test.mjs
 
 地图瓦片按当前可见区域从 `assets.wardogs-artillery.com` 加载，不在本仓库重新分发游戏地图。需要联网，并依赖该公共服务继续可用；失败时显示可重试提示。浏览器缓存处理重复浏览，不宣称完整离线支持。归属见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
-## GitHub Pages
+## 网站
 
-仓库已包含 `.github/workflows/pages.yml`。在 GitHub 仓库 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**，把代码推送至 `main` 后自动测试并部署。
+在线地址：[WARDOGS Map & Range Tool](https://mqzh.science/wdtool/)。个人网站的部署流程读取本仓库并发布到此路径。更新后重新运行 personal-website 的 Publish website 工作流即可同步。
 
-此仓库对应的默认地址为 `https://firepanda415.github.io/MZ-Wardogs/`，只有部署成功后才可访问。所有应用资源使用相对路径，兼容项目子目录。
-
-本次交付尚未部署：远端仓库为私有且未启用 Pages，随后本机 GitHub 凭据需要交互式登录。未更改仓库可见性。私有仓库能否启用 Pages 取决于账号套餐；也可以由仓库所有者选择公开这个项目，参见 [GitHub Pages 说明](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)。
+所有应用资源使用相对路径，支持在本地或其他子目录运行。
 
 ## 已验证
 
