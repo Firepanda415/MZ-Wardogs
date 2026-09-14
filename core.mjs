@@ -5,10 +5,30 @@ export const maps = {
   zestafona: { name: 'Zestafona', minX: 19.90, maxX: 124.89, minY: 50.70, maxY: 141.90 },
 };
 export const tileBounds = { minX: -0.03, maxX: 163.81, minY: -0.01, maxY: 163.83 };
+// Tower number, game X, game Y. Upstream marker coordinates are meters / 100.
+export const towers = {
+  bakurani: [[1,80.52,69.85],[2,77.19,70],[3,77.19,73.44],[4,83.64,72.85],[5,82.22,68.41]],
+  ozeti: [[1,95.80,62.82],[2,100.37,59.23],[3,104.49,63.71],[4,100.62,67.64]],
+  zestafona: [[1,68.599808,104.153],[2,72.892416,105.070592],[3,70.172672,100.1717]],
+};
+export const spawnAreas = {
+  bakurani: [{"name":"VALKYRA","color":"#d86666","points":[[117.5,73.76],[121.22,70.71],[118.18,66.99],[114.45,70.04]]},{"name":"MANTICORE","color":"#82c596","points":[[38.68,79.88],[43.39,78.85],[42.35,74.15],[37.65,75.18]]},{"name":"LONESTAR","color":"#5fa8d3","points":[[83.08,35.27],[87.72,36.51],[88.97,31.86],[84.32,30.62]]}],
+  ozeti: [{"name":"VALKYRA","color":"#d86666","points":[[133.98,68.51],[138.58,69.92],[139.99,65.32],[135.39,63.91]]},{"name":"MANTICORE","color":"#82c596","points":[[69.22,90.85],[73.09,87.98],[70.22,84.12],[66.36,86.99]]},{"name":"LONESTAR","color":"#5fa8d3","points":[[81.52,34.03],[86.33,34.03],[86.33,29.21],[81.53,29.22]]}],
+  zestafona: [{"name":"MANTICORE","color":"#82c596","points":[[103.3011,111.7061],[101.9084,116.31],[106.5123,117.6862],[107.8886,113.0987]]},{"name":"VALKYRA","color":"#d86666","points":[[40.2718,121.8805],[35.7007,123.3551],[37.175296,127.9262],[41.7464,126.4517]]},{"name":"LONESTAR","color":"#5fa8d3","points":[[65.1264,64.8151],[66.306,69.4681],[70.9591,68.2721],[69.7794,63.619]]}],
+};
 export const weapons = {
   mortar: { en: 'L81 Mortar', zh: 'L81 迫击炮', min: 132, max: 684 },
   sph2: { en: 'SPH-2', zh: 'SPH-2 自行炮', min: 780, max: 2629 },
 };
+export const markerTypes = {
+  observe: { zh:'观察点', en:'Observation', color:'#b8daf0', path:'M-8 0Q0-10 8 0Q0 10-8 0ZM-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0' },
+  danger: { zh:'危险', en:'Danger', color:'#ffb18d', path:'M0-8 8 6H-8ZM0-3v4M0 3v1' },
+  rally: { zh:'集合点', en:'Rally', color:'#d2dca4', path:'M-5 8V-8M-5-7H7L3-2 7 3H-5' },
+};
+export function validMarker(marker) {
+  return !!(marker && typeof marker.id === 'string' && marker.id.length > 0 &&
+    Object.hasOwn(markerTypes,marker.type) && Object.hasOwn(maps,marker.mapId) && validPoint(marker,maps[marker.mapId]));
+}
 export function parseCoordinate(value) {
   const text = String(value ?? '').trim().replace(',', '.');
   return /^\d+(?:\.\d{0,2})?$/.test(text) ? Number(text) : null;

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#121713">
   <meta name="referrer" content="no-referrer">
   <meta name="description" content="A simple, mobile-first WARDOGS map and range calculator. 简洁的 WARDOGS 地图、距离与方位工具。">
-  <title>MZ · WARDOGS</title>
+  <title>炮击计算 · 地图标记 | WARDOGS</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./style.css">
   <script type="module" src="./app.js"></script>
@@ -14,7 +14,7 @@
 <body>
 <main id="app">
   <header class="topbar">
-    <h1><span class="brand-mark">MZ</span> WARDOGS</h1>
+    <h1><span class="brand-mark">MZ</span><span data-i18n="appTitle">炮击计算 · 地图标记</span></h1>
     <div class="header-actions">
       <button id="saved-open"><svg class="icon"><use href="#bookmark"/></svg><span data-i18n="saved">收藏</span><span id="saved-count" class="count">0</span></button>
       <button id="language" lang="en" aria-label="Switch to English">EN</button>
@@ -42,10 +42,12 @@
     <div class="map-top-controls">
       <div class="mode-switch" role="group" aria-label="地图模式 / Map mode">
         <button id="browse" aria-pressed="true"><svg class="icon"><use href="#move"/></svg><span data-i18n="browse">浏览</span></button>
-        <button id="place" aria-pressed="false"><svg class="icon"><use href="#crosshair"/></svg><span data-i18n="place">放置目标</span></button>
+        <button id="place" aria-pressed="false"><svg class="icon"><use href="#crosshair"/></svg><span data-i18n="place">炮击目标</span></button>
+        <button id="marker-mode" aria-pressed="false"><svg class="icon"><use href="#marker-flag"/></svg><span data-i18n="markers">标记</span></button>
       </div>
       <button id="expand" class="map-button" aria-pressed="false"><svg class="icon"><use href="#expand-icon"/></svg><span data-i18n="expand">展开地图</span></button>
     </div>
+    <div id="marker-picker" class="marker-picker" role="group" aria-label="标记图标 / Marker icons" hidden></div>
     <span class="north" aria-hidden="true">N<span>↑</span></span>
     <div id="map-notice" class="map-notice" role="status" hidden></div>
     <div class="zoom-controls">
@@ -81,7 +83,7 @@
 
 <dialog id="info-dialog" aria-labelledby="info-title">
   <div class="dialog-heading"><h2 id="info-title" data-i18n="about">使用说明</h2><button class="close-dialog icon-button" aria-label="关闭 / Close">×</button></div>
-  <p data-i18n="help1">先输入自己坐标，再输入目标，或切换「放置目标」点选地图。锁定后需先解锁才能修改或清空。</p>
+  <p data-i18n="help1">先输入自己坐标，再输入目标，或切换「炮击目标」点选地图。锁定后需先解锁才能修改或清空。</p>
   <p data-i18n="help2">实线圈是最大射程，虚线圈内是过近区域。距离是平面距离，射程数据为社区参考值。</p>
   <p data-i18n="help3">浏览模式：拖动、双指或滚轮缩放。键盘：方向键移动，+/− 缩放；放置模式下 Enter 放在地图中心。</p>
   <p data-i18n="help4">展开地图可专心看图，点位与缩放会保留。收藏按地图分别保存，可载入自己或目标。</p>
@@ -92,6 +94,7 @@
 <noscript>此工具需要启用 JavaScript。 JavaScript is required.</noscript>
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
   <symbol id="crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v6m0 8v6M2 12h6m8 0h6"/></symbol>
+  <symbol id="marker-flag" viewBox="0 0 24 24"><path d="M5 22V2m0 1h14l-4 5 4 5H5"/></symbol>
   <symbol id="bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4Z"/></symbol>
   <symbol id="move" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M8 6l4-4 4 4M8 18l4 4 4-4M6 8l-4 4 4 4m12-8 4 4-4 4"/></symbol>
   <symbol id="expand-icon" viewBox="0 0 24 24"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></symbol>
