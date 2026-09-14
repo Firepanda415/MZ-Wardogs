@@ -1,0 +1,38 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Map loading regression check</title>
+<pre id="result">Running…</pre>
+<iframe id="app" src="../index.html" title="Application under test" width="960" height="700"></iframe>
+<script type="module">
+const frame = document.querySelector('#app'), result = document.querySelector('#result');
+const check = (condition, message) => { if (!condition) throw new Error(message); };
+const until = async predicate => {
+  const deadline = performance.now() + 10000;
+  while (!predicate()) {
+    check(performance.now() < deadline, 'Timed out waiting for map state');
+    await new Promise(resolve => setTimeout(resolve, 20));
+  }
+};
+try {
+  await until(() => frame.contentDocument?.querySelector('#tiles image') && frame.contentDocument.querySelector('#map-notice').hidden);
+  const doc = frame.contentDocument, win = frame.contentWindow;
+  const notice = doc.querySelector('#map-notice');
+  let tile = doc.querySelector('#tiles image');
+  tile.dispatchEvent(new win.Event('error'));
+  check(!notice.hidden, 'A visible failed tile must show the retry notice');
+  tile.dispatchEvent(new win.Event('load'));
+  check(notice.hidden, 'Successful loading must clear the failure');
+  tile.dispatchEvent(new win.Event('error'));
+  for (let i = 0; i < 4; i++) doc.querySelector('#zoom-in').click();
+  await until(() => !tile.isConnected && notice.hidden);
+  tile.dispatchEvent(new win.Event('error'));
+  check(notice.hidden, 'A late error from a removed tile must be ignored');
+  tile = doc.querySelector('#tiles image');
+  const level = tile.getAttribute('href').match(/zoom_\d+/)[0];
+  tile.dispatchEvent(new win.Event('error'));
+  for (let i = 0; i < 100; i++) doc.querySelector('#map-canvas').dispatchEvent(new win.KeyboardEvent('keydown', {key:'ArrowRight',bubbles:true}));
+  await until(() => !tile.isConnected && notice.hidden);
+  check(doc.querySelector('#tiles image').getAttribute('href').includes(level), 'Pan check must stay at the same tile level');
+  result.textContent = 'PASS: load recovery, zoom/pan cleanup, and stale error events.';
+} catch (error) { result.textContent = `FAIL: ${error.message}`; throw error; }
+</script>
