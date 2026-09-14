@@ -1,4 +1,4 @@
-import { maps, tileBounds, towers, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs';
+import { maps, tileBounds, towers, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=map-modes-1';
 
 const $ = id => document.getElementById(id);
 const strings = {
@@ -10,6 +10,8 @@ Object.assign(strings.zh,{appTitle:'炮击计算 · 地图标记',swap:'互换�
 Object.assign(strings.en,{appTitle:'Artillery & Map Markers',swap:'Swap your position and target',swapLocked:'Unlock positions before swapping'});
 Object.assign(strings.zh,{markers:'标记',markerHint:'地图已固定 · 点空白添加，点标记删除',markerAdded:'已添加标记',markerRemoved:'已删除标记',markerOutside:'请在地图边界内放置标记'});
 Object.assign(strings.en,{markers:'Markers',markerHint:'Map fixed · tap to add, tap a marker to delete',markerAdded:'Marker added',markerRemoved:'Marker deleted',markerOutside:'Place markers within the map boundary'});
+Object.assign(strings.zh,{place:'目标',placeOrigin:'自己',outside:'请选择地图边界内的位置',mapLabel:'地图：方向键浏览，加减号缩放；点选或标记时按回车放在中心',placeOriginHint:'地图已固定 · 点选自己位置',inputOnly:'输入或点选',artilleryTitle:'炮击计算',markersTitle:'纯地图标记',markerHint:'拖动 / 缩放地图 · 点空白添加，点标记删除',help1:'炮击计算：输入自己和目标坐标，或点击地图上方「自己」「目标」后点选位置。点选时地图固定；「浏览」恢复拖动缩放。锁定后需先解锁才能修改、清空或互换坐标。',help3:'纯地图标记：点击「标记」自动展开地图，选择观察点、危险或集合点，点空白添加，点已有标记删除。标记时仍可拖动、双指或滚轮缩放；拖动不会添加标记。「关闭」收起标记菜单，右上角按钮返回计算。',help4:'坐标、收藏和标记按地图分别保存在当前浏览器。键盘方向键浏览，+/− 缩放；点选或标记时 Enter 放在地图中心。'});
+Object.assign(strings.en,{place:'Target',placeOrigin:'You',outside:'Choose a position within the map boundary',mapLabel:'Map: arrows pan, +/− zoom; Enter places the selected point or marker at the center',placeOriginHint:'Map fixed · tap your position',inputOnly:'Type or tap',expand:'Expand',collapse:'Back',artilleryTitle:'Artillery',markersTitle:'Map Markers',markerHint:'Drag / zoom · tap to add or remove',help1:'Artillery: enter your and target coordinates, or choose You / Target above the map and tap a position. Placement fixes the map; Browse restores pan and zoom. Unlock before editing, clearing or swapping coordinates.',help3:'Map Markers: Markers expands the map. Choose Observ, Danger or Rally; tap empty space to add, or a marker to remove. Drag, pinch and scroll still work and do not place markers. Close hides the marker menu; the top-right button returns to the calculator.',help4:'Coordinates, saved positions and markers are saved per map in this browser. Arrow keys pan; +/− zoom. Enter places a point at the center in placement or marker mode.'});
 let lang = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
 let mapId = 'bakurani', weaponId = 'mortar', mode = 'browse', mapOnly = false;
 let perMap = {}, saved = [], savePoint = null, toastTimer, blockedStorage = false;
@@ -113,12 +115,15 @@ function updateMode() {
   $('browse').setAttribute('aria-pressed',String(mode === 'browse'));
   $('place').setAttribute('aria-pressed',String(mode === 'place'));
   $('place').disabled = current().target.locked;
+  $('place-origin').setAttribute('aria-pressed',String(mode === 'origin'));
+  $('place-origin').disabled = current().origin.locked;
+  $('marker-mode').querySelector('span').textContent = t(mode === 'marker' ? 'close' : 'markers');
   $('marker-mode').setAttribute('aria-pressed',String(mode === 'marker'));
   $('marker-picker').hidden = mode !== 'marker';
   $('map-panel').classList.toggle('marking',mode === 'marker');
-  $('map-panel').classList.toggle('placing',mode !== 'browse');
-  $('map-hint').textContent = t(mode === 'marker' ? 'markerHint' : mode === 'browse' ? 'browseHint' : current().target.locked ? 'lockedHint' : 'placeHint');
-  for (const id of ['zoom-in','zoom-out','fit']) $(id).disabled = mode !== 'browse';
+  $('map-panel').classList.toggle('placing',mode === 'place' || mode === 'origin');
+  $('map-hint').textContent = t(mode === 'marker' ? 'markerHint' : mode === 'browse' ? 'browseHint' : mode === 'origin' ? 'placeOriginHint' : current().target.locked ? 'lockedHint' : 'placeHint');
+  for (const id of ['zoom-in','zoom-out','fit']) $(id).disabled = mode === 'place' || mode === 'origin';
   for (const button of $('marker-picker').children) button.setAttribute('aria-pressed',String(button.dataset.type === markerType));
 }
 function translate() {
@@ -173,7 +178,7 @@ function clampCamera() {
   camera.x = Math.min(b.maxX,Math.max(b.minX,camera.x)); camera.y = Math.min(b.maxY,Math.max(b.minY,camera.y));
 }
 function zoom(factor,x=camera.width/2,y=camera.height/2) {
-  if (mode !== 'browse') return;
+  if (mode === 'place' || mode === 'origin') return;
   const before = screenToWorld(x,y,camera);
   camera.scale = Math.max(camera.fit,Math.min(camera.fit*64,camera.scale*factor));
   const after = screenToWorld(x,y,camera);
@@ -298,7 +303,7 @@ function renderMap() {
 function localPointer(event) { const r=canvas.getBoundingClientRect();return{x:event.clientX-r.left,y:event.clientY-r.top}; }
 function placeAt(world) {
   const p={x:Math.round(world.x*100)/100,y:Math.round(world.y*100)/100};
-  if(mode==='place')return setPoint('target',p);
+  if(mode==='place'||mode==='origin')return setPoint(mode==='origin'?'origin':'target',p);
   if(mode!=='marker')return;
   if(!validPoint(p,maps[mapId]))return toast(t('markerOutside'));
   // ponytail: nearest marker within a 44px touch target; no separate erase tool.
@@ -327,7 +332,7 @@ canvas.addEventListener('pointermove',event=>{
   const values=[...pointers.values()],a=values[0],b=values[1];
   const x=b?(a.x+b.x)/2:a.x,y=b?(a.y+b.y)/2:a.y;
   if(Math.hypot(x-gesture.x,y-gesture.y)>7)gesture.moved=true;
-  if(mode!=='browse')return;
+  if(mode==='place'||mode==='origin')return;
   const anchor=screenToWorld(gesture.x,gesture.y,gesture.camera);
   camera.scale=gesture.distance&&b?Math.max(camera.fit,Math.min(camera.fit*64,gesture.camera.scale*Math.hypot(a.x-b.x,a.y-b.y)/gesture.distance)):gesture.camera.scale;
   camera.x=anchor.x-(x-camera.width/2)/camera.scale;camera.y=anchor.y+(y-camera.height/2)/camera.scale;
@@ -348,7 +353,8 @@ canvas.addEventListener('wheel',event=>{event.preventDefault();const p=localPoin
 canvas.addEventListener('keydown',event=>{
   if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','+','=','-','Enter'].includes(event.key))return;
   event.preventDefault();
-  if(mode!=='browse') {if(event.key==='Enter')placeAt({x:camera.x,y:camera.y});return;}
+  if(event.key==='Enter'){if(mode!=='browse')placeAt({x:camera.x,y:camera.y});return;}
+  if(mode==='place'||mode==='origin')return;
   if(['+','='].includes(event.key))return zoom(1.5);
   if(event.key==='-')return zoom(1/1.5);
   camera.x+=({'ArrowLeft':-60,'ArrowRight':60}[event.key]||0)/camera.scale;
@@ -393,7 +399,7 @@ for(const key of ['origin','target']){
     if(current()[key].locked)return;
     current()[key][axis]=event.target.value;update();persist();
   });
-  $(key+'-lock').onclick=()=>{current()[key].locked=!current()[key].locked;if(key==='target'&&current().target.locked)mode='browse';update();persist();};
+  $(key+'-lock').onclick=()=>{current()[key].locked=!current()[key].locked;if(current()[key].locked && mode===(key==='target'?'place':'origin'))mode='browse';update();persist();};
   $(key+'-clear').onclick=()=>{if(current()[key].locked)return;current()[key]={x:'',y:'',locked:false};writeInputs();update();persist();};
   $(key+'-save').onclick=()=>openSaved(key);
 }
@@ -405,7 +411,12 @@ $('swap-coordinates').onclick=()=>{
 };
 $('browse').onclick=()=>{mode='browse';pointers.clear();gesture=null;updateMode();draw();};
 $('place').onclick=()=>{if(current().target.locked)return;mode='place';pointers.clear();gesture=null;updateMode();draw();};
-$('marker-mode').onclick=()=>{mode=mode==='marker'?'browse':'marker';pointers.clear();gesture=null;updateMode();if(mode==='marker')$('marker-picker').scrollIntoView({block:'nearest',inline:'nearest'});draw();};
+$('place-origin').onclick=()=>{if(current().origin.locked)return;mode='origin';pointers.clear();gesture=null;updateMode();draw();};
+$('marker-mode').onclick=()=>{
+  mode=mode==='marker'?'browse':'marker';pointers.clear();gesture=null;
+  if(mode==='marker'){mapOnly=true;document.body.classList.add('map-only');$('expand').setAttribute('aria-pressed','true');}
+  translate();
+};
 $('zoom-in').onclick=()=>zoom(1.5);$('zoom-out').onclick=()=>zoom(1/1.5);$('fit').onclick=fit;
 $('expand').onclick=()=>{
   mapOnly=!mapOnly;mode='browse';document.body.classList.toggle('map-only',mapOnly);$('expand').setAttribute('aria-pressed',String(mapOnly));translate();

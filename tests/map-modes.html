@@ -1,0 +1,63 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Map modes check</title>
+<pre id="result">Running…</pre>
+<iframe id="app" src="../index.html" title="Application under test" width="390" height="844"></iframe>
+<script type="module">
+const frame=document.querySelector('#app'), result=document.querySelector('#result');
+const stored=localStorage.getItem('mz-wardogs-v1');
+const check=(ok,message)=>{if(!ok)throw new Error(message);};
+try {
+  await new Promise(resolve=>frame.addEventListener('load',resolve,{once:true}));
+  const doc=frame.contentDocument, win=frame.contentWindow, $=id=>doc.getElementById(id);
+  const draw=()=>new Promise(resolve=>win.requestAnimationFrame(()=>win.requestAnimationFrame(resolve)));
+  const key=value=>$('map-canvas').dispatchEvent(new win.KeyboardEvent('keydown',{key:value,bubbles:true}));
+  if($('origin-lock').getAttribute('aria-pressed')==='true')$('origin-lock').click();
+  const target=[$('target-x').value,$('target-y').value].join(',');
+  $('place-origin').click();key('Enter');await draw();
+  check($('origin-x').value!=='' && $('origin-y').value!=='','You mode places your coordinates');
+  check([$('target-x').value,$('target-y').value].join(',')===target,'Placing yourself must preserve target');
+  const fixedCanvas=$('map-canvas'), fixedView=fixedCanvas.getAttribute('viewBox');
+  check(['zoom-in','zoom-out','fit'].every(id=>$(id).disabled),'You placement disables all map controls');
+  key('ArrowRight');key('+');fixedCanvas.dispatchEvent(new win.WheelEvent('wheel',{deltaY:-100,bubbles:true}));
+  const originalCapture=fixedCanvas.setPointerCapture;fixedCanvas.setPointerCapture=()=>{};
+  for(const [type,x] of [['pointerdown',100],['pointermove',180],['pointerup',180]]) fixedCanvas.dispatchEvent(new win.PointerEvent(type,{pointerId:1,button:0,clientX:x,clientY:300,bubbles:true}));
+  fixedCanvas.setPointerCapture=originalCapture;await draw();
+  check(fixedCanvas.getAttribute('viewBox')===fixedView,'You placement must block drag, wheel and keyboard pan/zoom');
+  check($('place').getBoundingClientRect().right<=$('place-origin').getBoundingClientRect().left+0.01,'Target must be left of You');
+  const origin=$('origin-x').value;
+  $('origin-lock').click();check($('place-origin').disabled,'Your lock disables map placement');
+  $('place-origin').click();key('Enter');check($('origin-x').value===origin,'Locked origin must stay unchanged');
+  $('marker-mode').click();await draw();
+  check(doc.body.classList.contains('map-only') && !$('marker-picker').hidden,'Markers expand map and show choices');
+  check(['关闭','Close'].includes($('marker-mode').textContent.trim()),'Open marker menu must say Close');
+  check(!$('zoom-in').disabled,'Marker mode allows zoom');
+  const canvas=$('map-canvas'), view=canvas.getAttribute('viewBox');
+  $('zoom-in').click();await draw();check(canvas.getAttribute('viewBox')!==view,'Zoom must work in marker mode');
+  const zoomed=canvas.getAttribute('viewBox');key('ArrowRight');await draw();check(canvas.getAttribute('viewBox')!==zoomed,'Keyboard pan must work');
+  const count=()=>doc.querySelectorAll('[data-user-marker]').length;
+  const before=count();
+  // Synthetic pointer events exercise the gesture handlers without native pointer capture.
+  const capture=canvas.setPointerCapture;canvas.setPointerCapture=()=>{};
+  const box=canvas.getBoundingClientRect();
+  const pointer=(type,x,y)=>canvas.dispatchEvent(new win.PointerEvent(type,{pointerId:1,button:0,clientX:box.left+x,clientY:box.top+y,bubbles:true}));
+  const beforeDrag=canvas.getAttribute('viewBox');
+  pointer('pointerdown',100,200);pointer('pointermove',160,230);pointer('pointerup',160,230);await draw();
+  check(canvas.getAttribute('viewBox')!==beforeDrag && count()===before,'Dragging must pan without adding/removing markers');
+  key('Enter');await draw();check(Math.abs(count()-before)===1,'Enter adds or removes one marker');
+  canvas.setPointerCapture=capture;
+  $('marker-mode').click();check($('marker-picker').hidden && ['标记','Markers'].includes($('marker-mode').textContent.trim()),'Close hides picker and restores label');
+  if(doc.documentElement.lang!=='en')$('language').click();
+  $('marker-mode').click();await draw();
+  check($('marker-picker').textContent.includes('Observ') && !$('marker-picker').textContent.includes('Observation'),'Use compact English label');
+  for(const width of [320,390]){
+    frame.width=width;await draw();
+    check(doc.documentElement.scrollWidth<=width,'Mobile page must not overflow');
+    const close=$('marker-mode').getBoundingClientRect(), picker=$('marker-picker').getBoundingClientRect();
+    check(close.right<=width && picker.right<=width && close.bottom<=picker.top,'Close and all marker choices remain visible');
+  }
+  $('info-open').click();check(doc.querySelectorAll('.help-mode-title').length===2,'Help separates both modes');
+  result.textContent='PASS: origin placement, locks, marker pan/zoom, drag safety, close, compact mobile menu and help.';
+}catch(error){result.textContent=`FAIL: ${error.message}`;throw error;}
+finally{if(stored===null)localStorage.removeItem('mz-wardogs-v1');else localStorage.setItem('mz-wardogs-v1',stored);}
+</script>

@@ -21,7 +21,7 @@ export const weapons = {
   sph2: { en: 'SPH-2', zh: 'SPH-2 自行炮', min: 780, max: 2629 },
 };
 export const markerTypes = {
-  observe: { zh:'观察点', en:'Observation', color:'#b8daf0', path:'M-8 0Q0-10 8 0Q0 10-8 0ZM-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0' },
+  observe: { zh:'观察点', en:'Observ', color:'#b8daf0', path:'M-8 0Q0-10 8 0Q0 10-8 0ZM-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0' },
   danger: { zh:'危险', en:'Danger', color:'#ffb18d', path:'M0-8 8 6H-8ZM0-3v4M0 3v1' },
   rally: { zh:'集合点', en:'Rally', color:'#d2dca4', path:'M-5 8V-8M-5-7H7L3-2 7 3H-5' },
 };

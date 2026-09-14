@@ -9,8 +9,8 @@
   <title>炮击计算 · 地图标记 | WARDOGS</title>
   <link rel="canonical" href="https://mqzh.science/wdtool/">
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=compact-coordinates-3">
-  <script type="module" src="./app.js?v=range-ring-1"></script>
+  <link rel="stylesheet" href="./style.css?v=map-modes-1">
+  <script type="module" src="./app.js?v=map-modes-1"></script>
 </head>
 <body>
 <main id="app">
@@ -44,7 +44,8 @@
       <div class="map-tools">
       <div class="mode-switch" role="group" aria-label="地图模式 / Map mode">
         <button id="browse" aria-pressed="true"><svg class="icon"><use href="#move"/></svg><span data-i18n="browse">浏览</span></button>
-        <button id="place" aria-pressed="false"><svg class="icon"><use href="#crosshair"/></svg><span data-i18n="place">炮击目标</span></button>
+        <button id="place" aria-pressed="false"><svg class="icon"><use href="#crosshair"/></svg><span data-i18n="place">目标</span></button>
+        <button id="place-origin" aria-pressed="false"><svg class="icon"><use href="#crosshair"/></svg><span data-i18n="placeOrigin">自己</span></button>
         <button id="marker-mode" aria-pressed="false"><svg class="icon"><use href="#marker-flag"/></svg><span data-i18n="markers">标记</span></button>
       </div>
       <div id="marker-picker" class="marker-picker" role="group" aria-label="标记图标 / Marker icons" hidden></div>
@@ -87,8 +88,10 @@
 
 <dialog id="info-dialog" aria-labelledby="info-title">
   <div class="dialog-heading"><h2 id="info-title" data-i18n="about">使用说明</h2><button class="close-dialog icon-button" aria-label="关闭 / Close">×</button></div>
+  <h3 class="help-mode-title"><span class="brand-mark" aria-hidden="true">MZ</span><span data-i18n="artilleryTitle">炮击计算</span></h3>
   <p data-i18n="help1">先输入自己坐标，再输入目标，或切换「炮击目标」点选地图。锁定后需先解锁才能修改或清空。</p>
   <p data-i18n="help2">实线圈是最大射程，虚线圈内是过近区域。距离是平面距离，射程数据为社区参考值。</p>
+  <h3 class="help-mode-title"><span class="brand-mark" aria-hidden="true">MZ</span><span data-i18n="markersTitle">纯地图标记</span></h3>
   <p data-i18n="help3">浏览模式：拖动、双指或滚轮缩放。键盘：方向键移动，+/− 缩放；放置模式下 Enter 放在地图中心。</p>
   <p data-i18n="help4">展开地图可专心看图，点位与缩放会保留。收藏按地图分别保存，可载入自己或目标。</p>
   <p class="small muted"><span data-i18n="attribution">地图及射程参考</span> <a href="https://github.com/apollyon-sys/wardogs-calculator" target="_blank" rel="noreferrer">Apollyon / wardogs-calculator</a> · 2026-09-14</p>
