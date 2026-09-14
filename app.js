@@ -109,7 +109,7 @@ function update() {
 function updateMode() {
   $('browse').setAttribute('aria-pressed',String(mode === 'browse'));
   $('place').setAttribute('aria-pressed',String(mode === 'place'));
-  $('place').disabled = current().target.locked || mapOnly;
+  $('place').disabled = current().target.locked;
   $('marker-mode').setAttribute('aria-pressed',String(mode === 'marker'));
   $('marker-picker').hidden = mode !== 'marker';
   $('map-panel').classList.toggle('marking',mode === 'marker');
@@ -387,7 +387,7 @@ for(const key of ['origin','target']){
   $(key+'-save').onclick=()=>openSaved(key);
 }
 $('browse').onclick=()=>{mode='browse';pointers.clear();gesture=null;updateMode();draw();};
-$('place').onclick=()=>{if(current().target.locked||mapOnly)return;mode='place';pointers.clear();gesture=null;updateMode();draw();};
+$('place').onclick=()=>{if(current().target.locked)return;mode='place';pointers.clear();gesture=null;updateMode();draw();};
 $('marker-mode').onclick=()=>{mode='marker';pointers.clear();gesture=null;updateMode();draw();};
 $('zoom-in').onclick=()=>zoom(1.5);$('zoom-out').onclick=()=>zoom(1/1.5);$('fit').onclick=fit;
 $('expand').onclick=()=>{
