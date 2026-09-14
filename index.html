@@ -41,14 +41,16 @@
       <rect id="map-bounds" fill="none" stroke="#c8d3bd" stroke-opacity=".4" vector-effect="non-scaling-stroke"/>
     </svg>
     <div class="map-top-controls">
+      <div class="map-tools">
       <div class="mode-switch" role="group" aria-label="地图模式 / Map mode">
         <button id="browse" aria-pressed="true"><svg class="icon"><use href="#move"/></svg><span data-i18n="browse">浏览</span></button>
         <button id="place" aria-pressed="false"><svg class="icon"><use href="#crosshair"/></svg><span data-i18n="place">炮击目标</span></button>
         <button id="marker-mode" aria-pressed="false"><svg class="icon"><use href="#marker-flag"/></svg><span data-i18n="markers">标记</span></button>
       </div>
+      <div id="marker-picker" class="marker-picker" role="group" aria-label="标记图标 / Marker icons" hidden></div>
+      </div>
       <button id="expand" class="map-button" aria-pressed="false"><svg class="icon"><use href="#expand-icon"/></svg><span data-i18n="expand">展开地图</span></button>
     </div>
-    <div id="marker-picker" class="marker-picker" role="group" aria-label="标记图标 / Marker icons" hidden></div>
     <span class="north" aria-hidden="true">N<span>↑</span></span>
     <div id="map-notice" class="map-notice" role="status" hidden></div>
     <div class="zoom-controls">

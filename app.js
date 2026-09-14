@@ -388,7 +388,7 @@ for(const key of ['origin','target']){
 }
 $('browse').onclick=()=>{mode='browse';pointers.clear();gesture=null;updateMode();draw();};
 $('place').onclick=()=>{if(current().target.locked)return;mode='place';pointers.clear();gesture=null;updateMode();draw();};
-$('marker-mode').onclick=()=>{mode='marker';pointers.clear();gesture=null;updateMode();draw();};
+$('marker-mode').onclick=()=>{mode=mode==='marker'?'browse':'marker';pointers.clear();gesture=null;updateMode();if(mode==='marker')$('marker-picker').scrollIntoView({block:'nearest',inline:'nearest'});draw();};
 $('zoom-in').onclick=()=>zoom(1.5);$('zoom-out').onclick=()=>zoom(1/1.5);$('fit').onclick=fit;
 $('expand').onclick=()=>{
   mapOnly=!mapOnly;mode='browse';document.body.classList.toggle('map-only',mapOnly);$('expand').setAttribute('aria-pressed',String(mapOnly));translate();
