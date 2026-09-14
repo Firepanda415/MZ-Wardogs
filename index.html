@@ -9,8 +9,8 @@
   <title>炮击计算 · 地图标记 | WARDOGS</title>
   <link rel="canonical" href="https://mqzh.science/wdtool/">
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css">
-  <script type="module" src="./app.js?v=map-load-recovery-1"></script>
+  <link rel="stylesheet" href="./style.css?v=coordinate-swap-1">
+  <script type="module" src="./app.js?v=coordinate-swap-1"></script>
 </head>
 <body>
 <main id="app">
@@ -67,6 +67,7 @@
       <div class="coordinate-inputs"><label><span>X</span><input id="target-x" type="text" inputmode="decimal" autocomplete="off" placeholder="—" aria-label="目标 X / Target X" aria-describedby="target-error"></label><label><span>Y</span><input id="target-y" type="text" inputmode="decimal" autocomplete="off" placeholder="—" aria-label="目标 Y / Target Y" aria-describedby="target-error"></label><button id="target-save" class="save-point icon-button" aria-label="收藏目标坐标 / Save target position"><svg class="icon"><use href="#bookmark"/></svg></button></div>
       <p id="target-error" class="input-error" hidden></p>
     </article>
+    <button id="swap-coordinates" class="icon-button" type="button" aria-label="互换自己与目标坐标"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"/></svg></button>
     <article class="coordinate-card origin-card" data-point="origin">
       <div class="coordinate-heading"><h2><span class="point-dot"></span><span data-i18n="origin">自己</span><small data-i18n="inputOnly">仅输入</small></h2><div class="point-actions"><button id="origin-lock" aria-pressed="false"><svg class="icon"><use href="#unlock"/></svg><span data-i18n="lock">锁定</span></button><button id="origin-clear" data-i18n="clear">清空</button></div></div>
       <div class="coordinate-inputs"><label><span>X</span><input id="origin-x" type="text" inputmode="decimal" autocomplete="off" placeholder="—" aria-label="自己 X / Your X" aria-describedby="origin-error"></label><label><span>Y</span><input id="origin-y" type="text" inputmode="decimal" autocomplete="off" placeholder="—" aria-label="自己 Y / Your Y" aria-describedby="origin-error"></label><button id="origin-save" class="save-point icon-button" aria-label="收藏自己坐标 / Save your position"><svg class="icon"><use href="#bookmark"/></svg></button></div>

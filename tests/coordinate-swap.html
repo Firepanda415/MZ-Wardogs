@@ -1,0 +1,54 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Coordinate swap check</title>
+<pre id="result">Running…</pre>
+<iframe id="app" src="../index.html" title="Application under test" width="1100" height="760"></iframe>
+<script type="module">
+const frame = document.querySelector('#app'), result = document.querySelector('#result');
+const stored = localStorage.getItem('mz-wardogs-v1');
+const check = (ok, message) => { if (!ok) throw new Error(message); };
+const loaded = () => new Promise(resolve => frame.addEventListener('load', resolve, {once:true}));
+try {
+  await loaded();
+  let doc = frame.contentDocument;
+  const input = (id, value) => {
+    doc.getElementById(id).value = value;
+    doc.getElementById(id).dispatchEvent(new frame.contentWindow.Event('input', {bubbles:true}));
+  };
+  const click = id => doc.getElementById(id).click();
+  doc.querySelector('#map').value = 'bakurani';
+  doc.querySelector('#map').dispatchEvent(new frame.contentWindow.Event('change'));
+  for (const key of ['origin','target']) if (doc.getElementById(key+'-lock').getAttribute('aria-pressed') === 'true') click(key+'-lock');
+  for (const [id,value] of Object.entries({'origin-x':'100','origin-y':'80','target-x':'103','target-y':'84'})) input(id,value);
+  const distance = doc.querySelector('#distance').textContent;
+  const bearing = Number(doc.querySelector('#bearing').textContent);
+  click('swap-coordinates');
+  check(doc.querySelector('#origin-x').value === '103' && doc.querySelector('#origin-y').value === '84' && doc.querySelector('#target-x').value === '100' && doc.querySelector('#target-y').value === '80', 'Both coordinate pairs must swap');
+  check(doc.querySelector('#distance').textContent === distance && Math.abs(Number(doc.querySelector('#bearing').textContent)-bearing-180) < 1, 'Distance stays the same; bearing reverses');
+  const reloaded = loaded(); frame.contentWindow.location.reload(); await reloaded; doc = frame.contentDocument;
+  check(doc.querySelector('#origin-x').value === '103' && doc.querySelector('#target-y').value === '80', 'Swap must persist after reload');
+  for (const key of ['origin','target']) {
+    click(key+'-lock');
+    check(doc.querySelector('#swap-coordinates').disabled, 'Either lock must prevent swapping');
+    click('swap-coordinates');
+    check(doc.querySelector('#origin-x').value === '103', 'Locked coordinates must stay unchanged');
+    click(key+'-lock');
+  }
+  const rect = selector => doc.querySelector(selector).getBoundingClientRect();
+  check(rect('.target-card').right <= rect('#swap-coordinates').left && rect('#swap-coordinates').right <= rect('.origin-card').left, 'Wide layout: button between cards');
+  for (const width of [390,320]) {
+    frame.width = width;
+    await new Promise(resolve => frame.contentWindow.requestAnimationFrame(() => frame.contentWindow.requestAnimationFrame(resolve)));
+    check(rect('#swap-coordinates').right <= rect('.target-card').left && rect('#swap-coordinates').right <= rect('.origin-card').left, 'Mobile layout: button left of both cards');
+    check(rect('.target-card').bottom <= rect('.origin-card').top, 'Mobile cards must stack');
+    check(doc.documentElement.scrollWidth <= width, 'Mobile layout must not overflow');
+  }
+  click('origin-clear'); input('target-x','invalid'); input('target-y',''); click('swap-coordinates');
+  check(doc.querySelector('#origin-x').value === 'invalid' && doc.querySelector('#origin-x').getAttribute('aria-invalid') === 'true' && doc.querySelector('#target-x').value === '', 'Partial or invalid inputs must be preserved and revalidated');
+  click('origin-clear'); check(doc.querySelector('#swap-coordinates').disabled, 'Empty coordinates have nothing to swap');
+  result.textContent = 'PASS: swapping, calculation, persistence, locks, partial input, and desktop/mobile layout.';
+} catch (error) { result.textContent = `FAIL: ${error.message}`; throw error; }
+finally {
+  if (stored === null) localStorage.removeItem('mz-wardogs-v1'); else localStorage.setItem('mz-wardogs-v1',stored);
+}
+</script>

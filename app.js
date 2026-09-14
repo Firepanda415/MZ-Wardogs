@@ -6,8 +6,8 @@ const strings = {
   en: { saved:'Saved',distance:'DISTANCE',bearing:'BEARING',map:'MAP',weapon:'WEAPON',range:'RANGE',browse:'Browse',place:'Artillery target',expand:'Expand map',collapse:'Back to calculator',origin:'You',target:'Target',inputOnly:'Type only',inputOrMap:'Type or tap',lock:'Lock',locked:'Locked',clear:'Clear',save:'Save',name:'Name this position',about:'How to use',coordinateHint:'Game coordinates · 0.01 = 1 m',localNote:'Saved only in this browser. Clearing site data removes saved positions.',help1:'Enter your position, then enter a target or switch to Artillery target and tap the map. Unlock a position before editing or clearing it.',help2:'The solid circle is maximum range. The dashed circle marks the minimum range. Distance is horizontal; weapon ranges are community reference values.',help3:'Browse: drag, pinch or scroll to zoom. Keyboard: arrows to pan, +/− to zoom; Enter places the target at the map center in placement mode.',help4:'Expand the map to browse with your positions and zoom preserved. Saved positions are grouped by map and can be loaded as you or the target.',attribution:'Maps and range data',unofficial:'Independently maintained, unofficial fan tool. It does not represent BULKHEAD, the WARDOGS development team or Apollyon, or claim their endorsement. Game maps and trademarks belong to their respective owners and are outside the upstream MIT license. Map images are served by this site.',in:'Within range',near:'Too close · below minimum',far:'Beyond maximum range',empty:'Enter your position and target',same:'Same position · no bearing',browseHint:'Drag to pan · pinch / scroll to zoom',placeHint:'Map fixed · tap to place target',lockedHint:'Target locked · unlock to place',invalid:'Enter coordinates within bounds (up to 2 decimals)',noSaved:'No saved positions on this map',loadOrigin:'Set as you',loadTarget:'Set as target',remove:'Delete',undo:'Undo',deleted:'Position deleted',savedDone:'Position saved',storageError:'Browser storage unavailable; this session still works.',storageCorrupt:'Saved data could not be read. Original data preserved.',unlockFirst:'Unlock this position first',outside:'Place the target within the map boundary',loading:'Loading map…',mapError:'Some map images could not load. Please retry.',retry:'Retry',yourX:'Your X',yourY:'Your Y',targetX:'Target X',targetY:'Target Y',saveOrigin:'Save your position',saveTarget:'Save target position',zoomIn:'Zoom in',zoomOut:'Zoom out',fit:'Fit map',close:'Close',mapLabel:'Map: arrow keys to pan, plus/minus to zoom; Enter places a target at the center in placement mode',rangeCircle:'Maximum range',minCircle:'Minimum range',badFields:'Check coordinate inputs' },
 };
 const storageKey = 'mz-wardogs-v1';
-Object.assign(strings.zh,{appTitle:'炮击计算 · 地图标记'});
-Object.assign(strings.en,{appTitle:'Artillery & Map Markers'});
+Object.assign(strings.zh,{appTitle:'炮击计算 · 地图标记',swap:'互换自己与目标坐标',swapLocked:'先解锁坐标再互换'});
+Object.assign(strings.en,{appTitle:'Artillery & Map Markers',swap:'Swap your position and target',swapLocked:'Unlock positions before swapping'});
 Object.assign(strings.zh,{markers:'标记',markerHint:'地图已固定 · 点空白添加，点标记删除',markerAdded:'已添加标记',markerRemoved:'已删除标记',markerOutside:'请在地图边界内放置标记'});
 Object.assign(strings.en,{markers:'Markers',markerHint:'Map fixed · tap to add, tap a marker to delete',markerAdded:'Marker added',markerRemoved:'Marker deleted',markerOutside:'Place markers within the map boundary'});
 let lang = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
@@ -88,6 +88,9 @@ function update() {
     $(key+'-clear').disabled = locked || !(p.x || p.y);
     $(key+'-save').disabled = !point(key);
   }
+  const locked = current().origin.locked || current().target.locked;
+  $('swap-coordinates').disabled = locked || !['origin','target'].some(key => current()[key].x || current()[key].y);
+  $('swap-coordinates').title = t(locked ? 'swapLocked' : 'swap');
   const origin = point('origin'), target = point('target');
   const result = origin && target ? solution(origin,target,weapons[weaponId]) : null;
   $('distance').textContent = result ? String(Math.round(result.distance)) : '—';
@@ -125,7 +128,7 @@ function translate() {
   $('language').textContent = lang === 'zh' ? 'EN' : '中文';
   $('language').lang = lang === 'zh' ? 'en' : 'zh-CN';
   $('language').setAttribute('aria-label',lang === 'zh' ? 'Switch to English' : '切换到中文');
-  for (const [id,key] of Object.entries({'origin-x':'yourX','origin-y':'yourY','target-x':'targetX','target-y':'targetY','origin-save':'saveOrigin','target-save':'saveTarget','zoom-in':'zoomIn','zoom-out':'zoomOut','fit':'fit','map-canvas':'mapLabel','map':'map','weapon':'weapon','info-open':'about'})) $(id).setAttribute('aria-label',t(key));
+  for (const [id,key] of Object.entries({'swap-coordinates':'swap','origin-x':'yourX','origin-y':'yourY','target-x':'targetX','target-y':'targetY','origin-save':'saveOrigin','target-save':'saveTarget','zoom-in':'zoomIn','zoom-out':'zoomOut','fit':'fit','map-canvas':'mapLabel','map':'map','weapon':'weapon','info-open':'about'})) $(id).setAttribute('aria-label',t(key));
   document.querySelectorAll('.close-dialog').forEach(el => el.setAttribute('aria-label',t('close')));
   $('expand').querySelector('span').textContent = t(mapOnly ? 'collapse' : 'expand');
   $('expand').setAttribute('aria-label',t(mapOnly ? 'collapse' : 'expand'));
@@ -389,6 +392,12 @@ for(const key of ['origin','target']){
   $(key+'-clear').onclick=()=>{if(current()[key].locked)return;current()[key]={x:'',y:'',locked:false};writeInputs();update();persist();};
   $(key+'-save').onclick=()=>openSaved(key);
 }
+$('swap-coordinates').onclick=()=>{
+  const points=current();
+  if(points.origin.locked || points.target.locked)return;
+  [points.origin,points.target]=[points.target,points.origin];
+  writeInputs();update();persist();
+};
 $('browse').onclick=()=>{mode='browse';pointers.clear();gesture=null;updateMode();draw();};
 $('place').onclick=()=>{if(current().target.locked)return;mode='place';pointers.clear();gesture=null;updateMode();draw();};
 $('marker-mode').onclick=()=>{mode=mode==='marker'?'browse':'marker';pointers.clear();gesture=null;updateMode();if(mode==='marker')$('marker-picker').scrollIntoView({block:'nearest',inline:'nearest'});draw();};
