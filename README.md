@@ -14,7 +14,7 @@
 
 | 手机端 · 炮击计算 | 手机端 · 展开地图与标记 |
 | --- | --- |
-| <img src="docs/screenshots/mobile.png" alt="手机计算界面：L81 迫击炮距离 500 米、方位 37 NE，自己的坐标已锁定" width="390"> | <img src="docs/screenshots/mobile-map.png" alt="手机展开地图：观察点、危险和集合点标记与射程圈同时显示" width="390"> |
+| <img src="docs/screenshots/mobile.png" alt="手机计算界面：L81 迫击炮距离 500 米、方位 37 NE，三位数坐标完整显示，左侧按钮可互换自己与目标" width="390"> | <img src="docs/screenshots/mobile-map.png" alt="手机展开地图：地图标记与环形射程区域同时显示" width="390"> |
 
 截图取自本项目实际运行界面（2026-09-14），使用示例坐标。地图影像归 BULKHEAD / 相应权利人所有，详见 [第三方声明](THIRD_PARTY_NOTICES.md)。
 
@@ -37,10 +37,11 @@ node scripts/vendor-maps.mjs --verify
 - 三张地图均叠加 VALKYRA、MANTICORE、LONESTAR 出生区边界和名称，采用原站的出生区多边形。其余预设标记是阵营点、武器商店、车库商店与重生面板；本工具不重复添加这些标记，也不添加原站的手动战术标记库或等高线。
 - 「标记」提供观察点、危险、集合点三种图标。该模式固定地图，点空白处连续添加，点已有标记删除；添加/删除均支持限时撤销。标记按地图保存在当前浏览器，独立于自己/目标坐标及其锁定状态；展开地图时也可使用。键盘聚焦地图后按 Enter 可在中心添加/删除标记。
 - 自己的位置只从输入框或已收藏坐标载入，不接受地图点选。
+- 互换按钮一次交换自己与目标的 X/Y，自动更新计算与地图并保存；手机竖排时在左侧，桌面横排时在两组坐标中间。任意一组锁定时需先解锁。
 - 独立锁定保护输入、清空与载入；自己的锁不会影响目标。换图保留各地图独立状态。
 - 坐标使用游戏 X/Y：X 向东增加，Y 向北增加，0.01 = 1 m。支持小数点 / 小数逗号，最多两位小数；越界不截断、不用于计算。
 - 平面距离以米显示；方位使用游戏 HUD 的整数角度 + 方向字母，如 `253 W`。北 0，东 90，南 180，西 270。同一点不显示虚假方位。
-- 射程内绿色，过近 / 超射程红色，同时显示文字。实线最大射程圈、虚线最小射程圈以自己为中心。
+- 射程内绿色，过近 / 超射程红色，同时显示文字。实线最大射程圈、虚线最小射程圈以自己为中心；只填色两圈之间的有效射程，内圈过近区域与外圈之外不填色。
 - 「展开地图」收起计算与输入，保留位置与缩放；仍可选择地图。
 - 收藏使用 localStorage（比 cookie 更适合不需要服务器的本地数据），按地图分类；可以命名、载入自己 / 目标、删除和限时撤销。清除网站数据会清除收藏。
 - 键盘：地图聚焦后方向键平移，+/− 缩放；放置模式下 Enter 放在中心。原生对话框支持 Escape 关闭。
@@ -94,11 +95,27 @@ WARDOGS 名称、商标、地图影像及其他游戏素材归各自权利人所
 
 所有应用资源使用相对路径，支持在本地或其他子目录运行。
 
+### Cloudflare 缓存与地图更新
+
+截至 2026-09-14，`mqzh.science` 和 `www` 已启用 Cloudflare DNS 记录的 **Proxied（橙云）**，GitHub Pages 仍是源站。图片由 **Cloudflare CDN 缓存，不是 DNS 缓存图片**。缓存级别为 **Standard**，Browser Cache TTL 为 **Respect Existing Headers**；当时地图响应为 `Cache-Control: max-age=600`，已实测 `CF-Cache-Status: HIT`。大陆访问效果需另行实测。
+
+更新地图时：
+
+1. 更新仓库里的 `assets/maps/`、`manifest.json` 和对应来源记录；下载器会跳过已校验文件，单纯再运行它不会自动发现同 URL 上被替换的上游图片。
+2. 运行 `node scripts/vendor-maps.mjs --verify`，推送更新，等待个人网站的 **Publish website** 部署成功。部署必须复制完整的 `assets/maps/`，否则图片会返回 404。
+3. 在 Cloudflare 选择 `mqzh.science` → **Caching → Configuration → Custom Purge → Prefix**，输入 `mqzh.science/wdtool/`（不加 `https://`），点击 **Purge**。先部署再清缓存，避免重新缓存旧文件或 404。
+4. 浏览器强制刷新后检查更新的地图图片。Cloudflare 清缓存不会删除用户浏览器已有的缓存；必要时清除该站点缓存或等待缓存过期。可用 `curl -I https://mqzh.science/wdtool/assets/maps/bakurani/zoom_0/0_0.webp` 检查状态应为 200，重复访问可观察 `CF-Cache-Status: HIT`。
+
+这些设置只影响线上分发，本地断网运行不依赖 Cloudflare。
+
+
 自托管时复制 `index.html`、`style.css`、`app.js`、`core.mjs`、`favicon.svg`、`THIRD_PARTY_NOTICES.md` 和完整的 `assets/maps/` 目录到任意静态 HTTP 服务即可。无需 API、上游 CDN、安装依赖或构建步骤。`scripts/vendor-maps.mjs` 是维护用的一次性下载器，正常使用与部署不需要运行；无参数执行会访问原始来源，跳过已经通过校验的文件。
 
 ## 已验证
 
-本地服务启动后，打开 `/tests/map-loading.html` 可运行加载错误恢复检查，页面应显示 `PASS`；覆盖成功重载、缩放 / 平移移除失败瓦片，以及旧瓦片的延迟错误事件。
+本地服务启动后，打开 `/tests/coordinate-swap.html` 可检查坐标互换、保存、锁定、环形射程填色和手机 / 桌面布局，页面应显示 `PASS`。
+
+打开 `/tests/map-loading.html` 可运行加载错误恢复检查，页面应显示 `PASS`；覆盖成功重载、缩放 / 平移移除失败瓦片，以及旧瓦片的延迟错误事件。
 
 `node scripts/vendor-maps.mjs --verify` 已核对全部 23,880 张瓦片的覆盖范围、WebP 文件格式与 SHA-256，并验证能拒绝被修改的图片。自托管浏览器检查在阻断外网请求的条件下覆盖三张地图、桌面与手机、逐级放大至最高精度及地图四角，738 次本站请求中外部请求为 0，无图片缺失或脚本错误。个人网站构建测试逐一检查部署目录中的瓦片文件与大小。
 

@@ -19,7 +19,14 @@ try {
   doc.querySelector('#map').value = 'bakurani';
   doc.querySelector('#map').dispatchEvent(new frame.contentWindow.Event('change'));
   for (const key of ['origin','target']) if (doc.getElementById(key+'-lock').getAttribute('aria-pressed') === 'true') click(key+'-lock');
+  doc.querySelector('#weapon').value = 'mortar';
+  doc.querySelector('#weapon').dispatchEvent(new frame.contentWindow.Event('change'));
   for (const [id,value] of Object.entries({'origin-x':'100','origin-y':'80','target-x':'103','target-y':'84'})) input(id,value);
+  await new Promise(resolve => frame.contentWindow.requestAnimationFrame(resolve));
+  const fill = doc.querySelector('#range-fill');
+  const at = x => fill.isPointInFill(new frame.contentWindow.DOMPoint(x,0));
+  check(!at(0) && !at(1) && at(3) && !at(7), 'Only the 132–684 m firing annulus should be filled');
+  check([...doc.querySelectorAll('#overlays>circle')].every(circle => circle.getAttribute('fill') === 'none'), 'Range outlines must not fill the inner dead zone');
   const distance = doc.querySelector('#distance').textContent;
   const bearing = Number(doc.querySelector('#bearing').textContent);
   click('swap-coordinates');
@@ -36,17 +43,23 @@ try {
   }
   const rect = selector => doc.querySelector(selector).getBoundingClientRect();
   check(rect('.target-card').right <= rect('#swap-coordinates').left && rect('#swap-coordinates').right <= rect('.origin-card').left, 'Wide layout: button between cards');
+  for (const id of ['origin-x','origin-y','target-x','target-y']) input(id,'100.00');
   for (const width of [390,320]) {
     frame.width = width;
     await new Promise(resolve => frame.contentWindow.requestAnimationFrame(() => frame.contentWindow.requestAnimationFrame(resolve)));
     check(rect('#swap-coordinates').right <= rect('.target-card').left && rect('#swap-coordinates').right <= rect('.origin-card').left, 'Mobile layout: button left of both cards');
     check(rect('.target-card').bottom <= rect('.origin-card').top, 'Mobile cards must stack');
     check(doc.documentElement.scrollWidth <= width, 'Mobile layout must not overflow');
+    const measure = doc.createElement('canvas').getContext('2d');
+    for (const field of doc.querySelectorAll('.coordinate-inputs input')) {
+      measure.font = frame.contentWindow.getComputedStyle(field).font;
+      check(field.clientWidth >= measure.measureText('100.00').width + 1, 'Three-digit coordinates with two decimals must fit');
+    }
   }
   click('origin-clear'); input('target-x','invalid'); input('target-y',''); click('swap-coordinates');
   check(doc.querySelector('#origin-x').value === 'invalid' && doc.querySelector('#origin-x').getAttribute('aria-invalid') === 'true' && doc.querySelector('#target-x').value === '', 'Partial or invalid inputs must be preserved and revalidated');
   click('origin-clear'); check(doc.querySelector('#swap-coordinates').disabled, 'Empty coordinates have nothing to swap');
-  result.textContent = 'PASS: swapping, calculation, persistence, locks, partial input, and desktop/mobile layout.';
+  result.textContent = 'PASS: range annulus, swapping, calculation, persistence, locks, partial input, and desktop/mobile layout.';
 } catch (error) { result.textContent = `FAIL: ${error.message}`; throw error; }
 finally {
   if (stored === null) localStorage.removeItem('mz-wardogs-v1'); else localStorage.setItem('mz-wardogs-v1',stored);

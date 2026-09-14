@@ -255,8 +255,13 @@ function renderMap() {
   }
   const origin=point('origin'),target=point('target'),weapon=weapons[weaponId];
   if(origin){
-    overlays.append(svg('circle',{cx:origin.x,cy:-origin.y,r:weapon.max/100,fill:'#b5e49a','fill-opacity':'.07',stroke:'#bed99c','stroke-opacity':'.85','stroke-width':1.5,'vector-effect':'non-scaling-stroke','aria-label':`${t('rangeCircle')} ${weapon.max} m`}));
-    overlays.append(svg('circle',{cx:origin.x,cy:-origin.y,r:weapon.min/100,fill:'#ff9a86','fill-opacity':'.06',stroke:'#f0bb9a','stroke-dasharray':'5 5','stroke-width':1,'vector-effect':'non-scaling-stroke','aria-label':`${t('minCircle')} ${weapon.min} m`}));
+    const ring = [weapon.max,weapon.min].map(m => {
+      const r=m/100;
+      return `M${-r} 0a${r} ${r} 0 1 0 ${2*r} 0a${r} ${r} 0 1 0 ${-2*r} 0Z`;
+    }).join(' ');
+    overlays.append(svg('path',{id:'range-fill',d:ring,transform:`translate(${origin.x} ${-origin.y})`,fill:'#b5e49a','fill-opacity':'.07','fill-rule':'evenodd','pointer-events':'none'}));
+    overlays.append(svg('circle',{cx:origin.x,cy:-origin.y,r:weapon.max/100,fill:'none',stroke:'#bed99c','stroke-opacity':'.85','stroke-width':1.5,'vector-effect':'non-scaling-stroke','aria-label':`${t('rangeCircle')} ${weapon.max} m`}));
+    overlays.append(svg('circle',{cx:origin.x,cy:-origin.y,r:weapon.min/100,fill:'none',stroke:'#f0bb9a','stroke-dasharray':'5 5','stroke-width':1,'vector-effect':'non-scaling-stroke','aria-label':`${t('minCircle')} ${weapon.min} m`}));
   }
   if(origin&&target) overlays.append(svg('line',{x1:origin.x,y1:-origin.y,x2:target.x,y2:-target.y,stroke:'#f0e8ce','stroke-width':1.5,'stroke-dasharray':'6 5','vector-effect':'non-scaling-stroke'}));
   for(const [number,tx,ty] of towers[mapId]) {
