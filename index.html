@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#121713">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="A simple, mobile-first WARDOGS map and range calculator. 简洁的 WARDOGS 地图、距离与方位工具。">
+  <title>MZ · WARDOGS</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+<main id="app">
+  <header class="topbar">
+    <h1><span class="brand-mark">MZ</span> WARDOGS</h1>
+    <div class="header-actions">
+      <button id="saved-open"><svg class="icon"><use href="#bookmark"/></svg><span data-i18n="saved">收藏</span><span id="saved-count" class="count">0</span></button>
+      <button id="language" lang="en" aria-label="Switch to English">EN</button>
+      <button id="info-open" class="icon-button" aria-label="使用说明 / About">?</button>
+    </div>
+  </header>
+
+  <section class="readout" aria-label="计算结果 / Firing information">
+    <div class="metric"><span class="eyebrow" data-i18n="distance">距离</span><div class="metric-value"><output id="distance">—</output><span class="unit">m</span></div><span id="range-status" class="status" role="status">输入自己与目标坐标</span></div>
+    <div class="metric bearing-metric"><span class="eyebrow" data-i18n="bearing">罗盘方位</span><div class="metric-value"><output id="bearing">—</output><span id="direction" class="direction">—</span></div><div id="compass" class="compass" aria-hidden="true"></div></div>
+  </section>
+
+  <section class="selection" aria-label="地图与武器 / Map and weapon">
+    <label class="map-picker"><span class="eyebrow" data-i18n="map">地图</span><select id="map" aria-label="地图 / Map"><option value="bakurani">Bakurani</option><option value="ozeti">Ozeti</option><option value="zestafona">Zestafona</option></select></label>
+    <label class="weapon-picker"><span class="eyebrow" data-i18n="weapon">武器</span><select id="weapon" aria-label="武器 / Weapon"></select></label>
+    <div class="weapon-range"><span class="eyebrow" data-i18n="range">射程</span><strong id="weapon-range">132–684 m</strong></div>
+  </section>
+
+  <section id="map-panel" class="map-panel">
+    <svg id="map-canvas" xmlns="http://www.w3.org/2000/svg" tabindex="0" role="application" aria-label="地图：方向键浏览，加减号缩放；放置模式下按回车选择中心点" aria-describedby="map-hint">
+      <defs><clipPath id="map-clip"><rect id="clip-bounds"/></clipPath></defs>
+      <g clip-path="url(#map-clip)"><image id="base-map" preserveAspectRatio="none"/><g id="tiles"></g><g id="grid"></g><g id="overlays"></g></g>
+      <rect id="map-bounds" fill="none" stroke="#c8d3bd" stroke-opacity=".4" vector-effect="non-scaling-stroke"/>
+    </svg>
+    <div class="map-top-controls">
+      <div class="mode-switch" role="group" aria-label="地图模式 / Map mode">
+        <button id="browse" aria-pressed="true"><svg class="icon"><use href="#move"/></svg><span data-i18n="browse">浏览</span></button>
+        <button id="place" aria-pressed="false"><svg class="icon"><use href="#crosshair"/></svg><span data-i18n="place">放置目标</span></button>
+      </div>
+      <button id="expand" class="map-button" aria-pressed="false"><svg class="icon"><use href="#expand-icon"/></svg><span data-i18n="expand">展开地图</span></button>
+    </div>
+    <span class="north" aria-hidden="true">N<span>↑</span></span>
+    <div id="map-notice" class="map-notice" role="status" hidden></div>
+    <div class="zoom-controls">
+      <button id="zoom-in" class="map-button icon-button" aria-label="放大 / Zoom in">+</button>
+      <button id="zoom-out" class="map-button icon-button" aria-label="缩小 / Zoom out">−</button>
+      <button id="fit" class="map-button icon-button" aria-label="全图 / Fit map"><svg class="icon"><use href="#expand-icon"/></svg></button>
+    </div>
+    <div class="map-bottom"><span id="scale-bar"></span><span id="map-hint">拖动浏览 · 双指缩放</span></div>
+  </section>
+
+  <section class="coordinates" aria-label="坐标 / Coordinates">
+    <article class="coordinate-card target-card" data-point="target">
+      <div class="coordinate-heading"><h2><span class="point-dot"></span><span data-i18n="target">目标</span><small data-i18n="inputOrMap">输入或点选</small></h2><div class="point-actions"><button id="target-lock" aria-pressed="false"><svg class="icon"><use href="#unlock"/></svg><span data-i18n="lock">锁定</span></button><button id="target-clear" data-i18n="clear">清空</button></div></div>
+      <div class="coordinate-inputs"><label><span>X</span><input id="target-x" type="text" inputmode="decimal" autocomplete="off" placeholder="—" aria-label="目标 X / Target X" aria-describedby="target-error"></label><label><span>Y</span><input id="target-y" type="text" inputmode="decimal" autocomplete="off" placeholder="—" aria-label="目标 Y / Target Y" aria-describedby="target-error"></label><button id="target-save" class="save-point icon-button" aria-label="收藏目标坐标 / Save target position"><svg class="icon"><use href="#bookmark"/></svg></button></div>
+      <p id="target-error" class="input-error" hidden></p>
+    </article>
+    <article class="coordinate-card origin-card" data-point="origin">
+      <div class="coordinate-heading"><h2><span class="point-dot"></span><span data-i18n="origin">自己</span><small data-i18n="inputOnly">仅输入</small></h2><div class="point-actions"><button id="origin-lock" aria-pressed="false"><svg class="icon"><use href="#unlock"/></svg><span data-i18n="lock">锁定</span></button><button id="origin-clear" data-i18n="clear">清空</button></div></div>
+      <div class="coordinate-inputs"><label><span>X</span><input id="origin-x" type="text" inputmode="decimal" autocomplete="off" placeholder="—" aria-label="自己 X / Your X" aria-describedby="origin-error"></label><label><span>Y</span><input id="origin-y" type="text" inputmode="decimal" autocomplete="off" placeholder="—" aria-label="自己 Y / Your Y" aria-describedby="origin-error"></label><button id="origin-save" class="save-point icon-button" aria-label="收藏自己坐标 / Save your position"><svg class="icon"><use href="#bookmark"/></svg></button></div>
+      <p id="origin-error" class="input-error" hidden></p>
+    </article>
+  </section>
+  <footer><span data-i18n="coordinateHint">游戏坐标 · 0.01 = 1 m</span><span><i class="origin-key"></i><span data-i18n="origin">自己</span><i class="target-key"></i><span data-i18n="target">目标</span></span></footer>
+</main>
+
+<dialog id="saved-dialog" aria-labelledby="saved-title">
+  <div class="dialog-heading"><h2 id="saved-title" data-i18n="saved">收藏</h2><button class="close-dialog icon-button" aria-label="关闭 / Close">×</button></div>
+  <p class="muted" id="saved-map"></p>
+  <form id="save-form" hidden><label for="saved-name" data-i18n="name">给坐标起个名字</label><div class="save-name-row"><input id="saved-name" maxlength="60" required autocomplete="off"><button type="submit" class="primary" data-i18n="save">保存</button></div></form>
+  <div id="saved-list"></div>
+  <p class="muted small" data-i18n="localNote">仅保存在此浏览器，清除网站数据会删除收藏。</p>
+</dialog>
+
+<dialog id="info-dialog" aria-labelledby="info-title">
+  <div class="dialog-heading"><h2 id="info-title" data-i18n="about">使用说明</h2><button class="close-dialog icon-button" aria-label="关闭 / Close">×</button></div>
+  <p data-i18n="help1">先输入自己坐标，再输入目标，或切换「放置目标」点选地图。锁定后需先解锁才能修改或清空。</p>
+  <p data-i18n="help2">实线圈是最大射程，虚线圈内是过近区域。距离是平面距离，射程数据为社区参考值。</p>
+  <p data-i18n="help3">浏览模式：拖动、双指或滚轮缩放。键盘：方向键移动，+/− 缩放；放置模式下 Enter 放在地图中心。</p>
+  <p data-i18n="help4">展开地图可专心看图，点位与缩放会保留。收藏按地图分别保存，可载入自己或目标。</p>
+  <p class="small muted"><span data-i18n="attribution">地图及射程参考</span> <a href="https://github.com/apollyon-sys/wardogs-calculator" target="_blank" rel="noreferrer">Apollyon / wardogs-calculator</a> · 2026-09-14</p>
+  <p class="small muted" data-i18n="unofficial">非官方玩家工具。WARDOGS 地图与商标归 BULKHEAD / 相应权利人所有。地图需要联网加载。</p>
+</dialog>
+<div id="toast" role="status" hidden></div>
+<noscript>此工具需要启用 JavaScript。 JavaScript is required.</noscript>
+<svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+  <symbol id="crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v6m0 8v6M2 12h6m8 0h6"/></symbol>
+  <symbol id="bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4Z"/></symbol>
+  <symbol id="move" viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M8 6l4-4 4 4M8 18l4 4 4-4M6 8l-4 4 4 4m12-8 4 4-4 4"/></symbol>
+  <symbol id="expand-icon" viewBox="0 0 24 24"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></symbol>
+  <symbol id="unlock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0M12 14v3"/></symbol>
+  <symbol id="locked" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4M12 14v3"/></symbol>
+</defs></svg>
+</body>
+</html>
