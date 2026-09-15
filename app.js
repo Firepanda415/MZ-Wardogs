@@ -1,4 +1,4 @@
-import { maps, tileBounds, towers, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=map-modes-1';
+import { maps, tileBounds, towers, landmarks, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=church-1';
 
 const $ = id => document.getElementById(id);
 const strings = {
@@ -279,6 +279,13 @@ function renderMap() {
       g.append(svg('path',{d:'M-5 5 0-8 5 5M-4 2h8M-3-2h6',fill:'none',stroke:'#e8d79b','stroke-width':1.5}));
       g.append(svg('text',{x:0,y:20,'text-anchor':'middle',fill:'#f6e6b4','font-size':11,'font-weight':600,'paint-order':'stroke',stroke:'#121713','stroke-width':3,'stroke-linejoin':'round'},label));
     }
+    overlays.append(g);
+  }
+  for(const landmark of landmarks.filter(p=>p.mapId===mapId)) {
+    const label=landmark[lang];
+    const g=svg('g',{'data-landmark':landmark.id,transform:`translate(${landmark.x} ${-landmark.y}) scale(${1/s})`,role:'img','aria-label':`${label} · X ${landmark.x.toFixed(2)} · Y ${landmark.y.toFixed(2)}`,'pointer-events':'none'});
+    g.append(svg('title',{},label),svg('path',{d:'M-5 6V-2L0-6 5-2V6ZM0-6V-11M-3-9H3M-1 6V2H1V6',fill:'#171e17',stroke:'#e8d79b','stroke-width':1.5}));
+    if(s>=12) g.append(svg('text',{x:9,y:4,fill:'#f6e6b4','font-size':11,'font-weight':600,'paint-order':'stroke',stroke:'#121713','stroke-width':3,'stroke-linejoin':'round'},label));
     overlays.append(g);
   }
   for(const [key,p,color] of [['origin',origin,'#9bd6c2'],['target',target,'#ffa18b']]) if(p){

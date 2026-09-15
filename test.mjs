@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { maps, towers, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs';
+import { maps, towers, landmarks, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs';
 
 const origin={x:100,y:80}, mortar=weapons.mortar;
 for(const [target,bearing] of [[{x:100,y:81},0],[{x:101,y:80},90],[{x:100,y:79},180],[{x:99,y:80},270]]) {
@@ -46,3 +46,6 @@ assert.ok(validMarker(marker));
 for(const patch of [{type:'<script>'},{type:'constructor'},{mapId:'missing'},{id:''},{x:NaN},{x:999},{x:'80'}]) assert.ok(!validMarker({...marker,...patch}));
 assert.ok(!validMarker(null));
 console.log('Passed: calculations, bounds, tower/spawn data and saved marker validation.');
+
+assert.deepEqual(landmarks.map(({mapId,x,y})=>({mapId,x,y})),[{mapId:"bakurani",x:84.48,y:71.40}]);
+for(const p of landmarks) assert.ok(validPoint(p,maps[p.mapId]));

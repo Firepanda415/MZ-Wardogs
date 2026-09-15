@@ -15,6 +15,10 @@ Original WebP map tiles were downloaded from the upstream public asset service, 
 
 Thank you to Apollyon for making the original tool and data available. This project is maintained independently; changes in this repository are the responsibility of its maintainers.
 
+## WardogTools.gg — coordinate reference
+
+[WardogTools.gg Artillery Calculator](https://wardogtools.gg/artillery/) was checked on September 14, 2026. The Sunflower Church location in Bakurani (game X 84.48, Y 71.40) is credited to that reference. We use the factual location and our own SVG symbol, not their application code, icons, elevation textures or map tiles. See `docs/map-data-check.md` for the comparison and the unresolved Zestafona calibration difference. This credit does not claim endorsement or apply the upstream Apollyon MIT license to WardogTools materials.
+
 ## WARDOGS assets
 
 WARDOGS map imagery, game assets, names, logos and trademarks are NOT covered by the upstream MIT license. They remain the property of BULKHEAD / their respective rights holders. The bundled map tiles and README screenshots do not imply ownership or relicensing of these assets.

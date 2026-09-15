@@ -11,6 +11,8 @@ export const towers = {
   ozeti: [[1,95.80,62.82],[2,100.37,59.23],[3,104.49,63.71],[4,100.62,67.64]],
   zestafona: [[1,68.599808,104.153],[2,72.892416,105.070592],[3,70.172672,100.1717]],
 };
+// WardogTools.gg artillery POI, checked 2026-09-14; meters converted to game units.
+export const landmarks = [{id:'sunflower-church',mapId:'bakurani',x:84.48,y:71.40,zh:'向日葵教堂',en:'Sunflower Church'}];
 export const spawnAreas = {
   bakurani: [{"name":"VALKYRA","color":"#d86666","points":[[117.5,73.76],[121.22,70.71],[118.18,66.99],[114.45,70.04]]},{"name":"MANTICORE","color":"#82c596","points":[[38.68,79.88],[43.39,78.85],[42.35,74.15],[37.65,75.18]]},{"name":"LONESTAR","color":"#5fa8d3","points":[[83.08,35.27],[87.72,36.51],[88.97,31.86],[84.32,30.62]]}],
   ozeti: [{"name":"VALKYRA","color":"#d86666","points":[[133.98,68.51],[138.58,69.92],[139.99,65.32],[135.39,63.91]]},{"name":"MANTICORE","color":"#82c596","points":[[69.22,90.85],[73.09,87.98],[70.22,84.12],[66.36,86.99]]},{"name":"LONESTAR","color":"#5fa8d3","points":[[81.52,34.03],[86.33,34.03],[86.33,29.21],[81.53,29.22]]}],

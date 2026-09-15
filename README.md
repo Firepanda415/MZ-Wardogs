@@ -46,6 +46,12 @@ node scripts/vendor-maps.mjs --verify
 - 收藏使用 localStorage（比 cookie 更适合不需要服务器的本地数据），按地图分类；可以命名、载入自己 / 目标、删除和限时撤销。清除网站数据会清除收藏。
 - 键盘：地图聚焦后方向键平移，+/− 缩放；放置模式下 Enter 放在中心。原生对话框支持 Escape 关闭。
 
+## 地图数据核对（2026-09-14）
+
+对照 [WardogTools.gg](https://wardogtools.gg/artillery/) 后，Bakurani、Ozeti 的地图边界、瓦片标定、全部塔位及出生区多边形一致，两种武器射程一致。已补充 Bakurani 的 **Sunflower Church（向日葵教堂），X 84.48 / Y 71.40**，使用本站绘制的教堂图标。
+
+**Zestafona 两站坐标体系不同，尚未用游戏内坐标独立确认。** 本站保留 Apollyon 的地图、瓦片和坐标整套标定，未直接替换成另一站的数值。具体边界、塔位差异及来源见 [核对记录](docs/map-data-check.md)。本站仍只计算平面距离和方位，不引入对方的地形高度、楼顶高度或弹道计算。
+
 ## 致谢与来源
 
 > Apollyon (apollyon-sys). (2026). *WARDOGS Artillery Calculator* [计算机软件]. GitHub. 提交版本：[`ef7cf2d8cb637532b1595b634b87469be6f507b4`](https://github.com/apollyon-sys/wardogs-calculator/tree/ef7cf2d8cb637532b1595b634b87469be6f507b4)。访问日期：2026-09-14。
