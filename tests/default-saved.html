@@ -1,0 +1,46 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Default saved positions check</title>
+<pre id="result">Running…</pre>
+<iframe id="app" title="Application under test" width="1100" height="760"></iframe>
+<script type="module">
+const frame=document.querySelector('#app'), result=document.querySelector('#result');
+const storageKey='mz-wardogs-v1', stored=localStorage.getItem(storageKey);
+const check=(ok,message)=>{if(!ok)throw new Error(message);};
+const load=()=>new Promise(resolve=>{frame.addEventListener('load',resolve,{once:true});frame.src='../index.html';});
+try {
+  const custom={id:'custom-tower',mapId:'bakurani',name:'My tower',x:80.52,y:69.89};
+  const marker={id:'my-marker',mapId:'bakurani',type:'observe',x:80,y:70};
+  localStorage.setItem(storageKey,JSON.stringify({version:1,lang:'zh',mapId:'bakurani',weaponId:'mortar',saved:[custom],markers:[marker],perMap:{}}));
+  await load();
+  let doc=frame.contentDocument;
+  const data=()=>JSON.parse(localStorage.getItem(storageKey));
+  const names=()=>[...doc.querySelectorAll('.saved-item strong')].map(e=>e.textContent);
+  check(data().saved.length===10,'Upgrade adds ten zone points without duplicating the existing tower');
+  check(data().saved.find(p=>p.id===custom.id)?.name==='My tower','Existing custom name survives');
+  check(data().markers[0].id===marker.id,'Existing markers survive');
+  doc.querySelector('#saved-open').click();
+  check(names().join('|')==='My tower|4号塔|5号塔|向日葵教堂|货柜工厂','Bakurani has exactly the five inside-zone points');
+  doc.querySelector('#language').click();
+  check(names().includes('Tower 4')&&names().includes('Sunflower Church')&&names().includes('My tower'),'Default names translate; custom name stays unchanged');
+  const tower=()=>[...doc.querySelectorAll('.saved-item')].find(row=>row.querySelector('strong').textContent==='Tower 4');
+  tower().querySelectorAll('button')[1].click();
+  check(doc.querySelector('#target-x').value==='83.60'&&doc.querySelector('#target-y').value==='72.81','Default favorite loads target coordinates');
+  doc.querySelector('#saved-open').click();
+  tower().querySelectorAll('button')[2].click();
+  check(!names().includes('Tower 4'),'Default favorite can be deleted');
+  await load(); doc=frame.contentDocument;
+  check(data().saved.length===9&&!data().saved.some(p=>p.id==='preset:bakurani:tower:4'),'Deleted default does not return after reload');
+  for (const [mapId,expected] of [['ozeti','Tower 1|Tower 2|Hilltop Church'],['zestafona','Tower 1|Tower 3']]) {
+    const select=doc.querySelector('#map');select.value=mapId;select.dispatchEvent(new frame.contentWindow.Event('change'));
+    doc.querySelector('#saved-open').click();
+    check(names().join('|')===expected,`Correct defaults for ${mapId}`);
+    doc.querySelector('#saved-dialog').close();
+  }
+  localStorage.removeItem(storageKey);
+  await load(); doc=frame.contentDocument;
+  check(data().saved.length===10&&data().defaultSavedInitialized===true,'Fresh browser receives all defaults once');
+  result.textContent='PASS: fresh defaults, existing-user migration, deduplication, preserved custom data, zone filtering, translations, loading and deletion persistence.';
+} catch(error) {result.textContent=`FAIL: ${error.message}`;throw error;}
+finally {if(stored===null)localStorage.removeItem(storageKey);else localStorage.setItem(storageKey,stored);}
+</script>

@@ -1,4 +1,4 @@
-import { maps, outsideControlZone, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, mortarRange, mortarMil, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=mortar-range-80';
+import { maps, outsideControlZone, defaultSavedPositions, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, mortarRange, mortarMil, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=zone-favorites-1';
 
 const $ = id => document.getElementById(id);
 const strings = {
@@ -15,6 +15,7 @@ Object.assign(strings.en,{place:'Target',placeOrigin:'You',outside:'Choose a pos
 let lang = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
 let mapId = 'bakurani', weaponId = 'mortar', mode = 'browse', mapOnly = false;
 let perMap = {}, saved = [], savePoint = null, toastTimer, blockedStorage = false;
+let defaultSavedInitialized = false;
 let markers = [], markerType = 'observe';
 const t = key => strings[lang][key];
 const blank = () => ({ origin: { x:'', y:'', locked:false }, target: { x:'', y:'', locked:false } });
@@ -38,12 +39,13 @@ try {
     }
     saved = data.saved.filter(p => p && typeof p.id === 'string' && typeof p.name === 'string' && p.name.trim() && p.name.length <= 60 && Object.hasOwn(maps,p.mapId) && validPoint(p,maps[p.mapId]));
     markers = Array.isArray(data.markers) ? data.markers.filter(validMarker) : [];
+    defaultSavedInitialized = data.defaultSavedInitialized === true;
   }
 } catch { blockedStorage = true; setTimeout(() => toast(t('storageCorrupt')), 0); }
 
 function persist() {
   if (blockedStorage) return;
-  try { localStorage.setItem(storageKey, JSON.stringify({ version:1,lang,mapId,weaponId,perMap,saved,markers })); }
+  try { localStorage.setItem(storageKey, JSON.stringify({ version:1,lang,mapId,weaponId,perMap,saved,markers,defaultSavedInitialized })); }
   catch { toast(t('storageError')); }
 }
 function toast(text, undo) {
@@ -431,7 +433,7 @@ function renderSaved() {
   if(!positions.length){const p=document.createElement('p');p.className='empty-saved';p.textContent=t('noSaved');list.append(p);}
   for(const p of positions){
     const row=document.createElement('article');row.className='saved-item';
-    const name=document.createElement('strong');name.textContent=p.name;
+    const name=document.createElement('strong');name.textContent=defaultSavedPositions.find(item=>item.id===p.id)?.[lang] || p.name;
     const coords=document.createElement('p');coords.className='saved-coordinates';coords.textContent=`X ${p.x.toFixed(2)}   ·   Y ${p.y.toFixed(2)}`;
     const actions=document.createElement('div');actions.className='saved-actions';
     for(const key of ['origin','target']){
@@ -485,4 +487,13 @@ $('save-form').onsubmit=event=>{
   if(!name||!savePoint)return;
   saved.push({id:Array.from(crypto.getRandomValues(new Uint32Array(4)),n=>n.toString(16)).join('-'),mapId,name,...savePoint});persist();$('save-form').hidden=true;savePoint=null;renderSaved();update();toast(t('savedDone'));
 };
+if (!defaultSavedInitialized && !blockedStorage) {
+  for (const p of defaultSavedPositions) {
+    if (!saved.some(item=>item.id===p.id || (item.mapId===p.mapId && item.x===p.x && item.y===p.y)))
+      saved.push({id:p.id,mapId:p.mapId,x:p.x,y:p.y,name:p.zh});
+  }
+  // Seed once so deleted defaults stay deleted after a reload.
+  defaultSavedInitialized = true;
+  persist();
+}
 writeInputs();translate();fit();loadMap();

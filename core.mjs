@@ -44,7 +44,8 @@ export const spawnAreas = {
   zestafona: [{"name":"MANTICORE","color":"#82c596","points":[[103.3011,111.7061],[101.9084,116.31],[106.5123,117.6862],[107.8886,113.0987]]},{"name":"VALKYRA","color":"#d86666","points":[[40.2718,121.8805],[35.7007,123.3551],[37.175296,127.9262],[41.7464,126.4517]]},{"name":"LONESTAR","color":"#5fa8d3","points":[[65.1264,64.8151],[66.306,69.4681],[70.9591,68.2721],[69.7794,63.619]]}],
 };
 export const weapons = {
-  mortar: { en: 'L81 Mortar', zh: 'L81 迫击炮', min: 80, max: 684 },
+  // User-confirmed adjustment stop in 20260915002406_1.jpg: center ~877 MIL, ~120 m.
+  mortar: { en: 'L81 Mortar', zh: 'L81 迫击炮', min: 120, max: 684 },
   sph2: { en: 'SPH-2', zh: 'SPH-2 自行炮', min: 780, max: 2629 },
 };
 // Game sight labels transcribed from the seven 20260915 screenshots; see README.
@@ -100,3 +101,9 @@ export function outsideControlZone(mapId,x,y) {
   const zones=controlZones[mapId];
   return !!zones?.length && !zones.some(z=>Math.hypot(x-z.x,y-z.y)<=z.r);
 }
+
+export const defaultSavedPositions = [
+  ...Object.entries(towers).flatMap(([mapId,points]) => points.map(([number,x,y]) =>
+    ({id:`preset:${mapId}:tower:${number}`,mapId,x,y,zh:`${number}号塔`,en:`Tower ${number}`}))),
+  ...landmarks.map(p => ({...p,id:`preset:${p.mapId}:${p.id}`})),
+].filter(p => !outsideControlZone(p.mapId,p.x,p.y));

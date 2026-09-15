@@ -47,7 +47,7 @@ try {
   check([...doc.querySelectorAll('#compass .major')].some(t=>t.textContent==='NE'), 'Compass labels intercardinal directions');
   const fill = doc.querySelector('#range-fill');
   const at = x => fill.isPointInFill(new frame.contentWindow.DOMPoint(x,0));
-  check(!at(0) && !at(.5) && at(1) && at(3) && !at(7), 'Only the 80–684 m firing annulus should be filled');
+  check(!at(0) && !at(1) && at(1.3) && at(3) && !at(7), 'Only the 120–684 m firing annulus should be filled');
   check([...doc.querySelectorAll('#overlays>circle')].every(circle => circle.getAttribute('fill') === 'none'), 'Range outlines must not fill the inner dead zone');
   const distance = doc.querySelector('#distance').textContent;
   const bearing = Number(doc.querySelector('#bearing').textContent);
