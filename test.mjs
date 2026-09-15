@@ -50,10 +50,13 @@ console.log('Passed: calculations, bounds, tower/spawn data and saved marker val
 assert.deepEqual(landmarks.map(({mapId,x,y})=>({mapId,x,y})),[{mapId:"bakurani",x:84.48,y:71.40}]);
 for(const p of landmarks) assert.ok(validPoint(p,maps[p.mapId]));
 
-assert.equal(controlZones.bakurani.length,3);
+assert.equal(controlZones.bakurani.length,1);
 assert.equal(spawnPoints.bakurani.length,3);
 for(const p of [...controlZones.bakurani,...spawnPoints.bakurani]) assert.ok(validPoint(p,maps.bakurani));
 for(const p of controlZones.bakurani) assert.ok(Math.abs(p.r-50000/1632000*163.84)<1e-6);
 assert.ok(Math.abs(spawnPoints.bakurani[0].x-((-761839+1632000)/1632000*163.84-.03))<1e-6);
 assert.ok(Math.abs(spawnPoints.bakurani[0].y-((732151-408000)/1632000*163.84-.01))<1e-6);
 console.log('Passed: Control Zone and Spawn point registration.');
+
+assert.equal(controlZones.bakurani[0].id,'default');
+for(const p of spawnPoints.bakurani) assert.ok(spawnAreas.bakurani.some(a=>a.name===p.faction));

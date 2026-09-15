@@ -16,13 +16,11 @@ export const landmarks = [{id:'sunflower-church',mapId:'bakurani',x:84.48,y:71.4
 // MetaForge Bakurani, 2026-09-14. Registered by full tile extents; see docs/map-data-check.md.
 export const controlZones = {bakurani: [
   {id:'default',x:79.875405,y:71.801725,r:5.019608},
-  {id:'farmland',x:81.339590,y:69.347970,r:5.019608},
-  {id:'lumberyard',x:82.469092,y:71.798502,r:5.019608},
 ]};
 export const spawnPoints = {bakurani: [
-  {id:'alpha',x:87.327340,y:32.532218},
-  {id:'bravo',x:118.691958,y:70.896478},
-  {id:'charlie-1',x:39.471603,y:77.674957},
+  {id:'alpha',faction:'LONESTAR',x:87.327340,y:32.532218},
+  {id:'bravo',faction:'VALKYRA',x:118.691958,y:70.896478},
+  {id:'charlie-1',faction:'MANTICORE',x:39.471603,y:77.674957},
 ]};
 export const spawnAreas = {
   bakurani: [{"name":"VALKYRA","color":"#d86666","points":[[117.5,73.76],[121.22,70.71],[118.18,66.99],[114.45,70.04]]},{"name":"MANTICORE","color":"#82c596","points":[[38.68,79.88],[43.39,78.85],[42.35,74.15],[37.65,75.18]]},{"name":"LONESTAR","color":"#5fa8d3","points":[[83.08,35.27],[87.72,36.51],[88.97,31.86],[84.32,30.62]]}],

@@ -1,4 +1,4 @@
-import { maps, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=rulers-1';
+import { maps, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=markers-2';
 
 const $ = id => document.getElementById(id);
 const strings = {
@@ -270,10 +270,13 @@ function renderMap() {
     g.append(name);overlays.append(g);
   }
   for(const zone of controlZones[mapId]||[]) {
-    overlays.append(svg('circle',{'data-control-zone':zone.id,cx:zone.x,cy:-zone.y,r:zone.r,fill:'none',stroke:'#fff','stroke-width':1.5,'stroke-dasharray':'6 5','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    overlays.append(svg('circle',{'data-control-zone':zone.id,cx:zone.x,cy:-zone.y,r:zone.r,fill:'none',stroke:'#fff','stroke-opacity':.45,'stroke-width':1.5,'stroke-dasharray':'6 5','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
   }
   for(const spawn of spawnPoints[mapId]||[]) {
-    overlays.append(svg('path',{'data-spawn-point':spawn.id,transform:`translate(${spawn.x} ${-spawn.y}) scale(${1/s})`,d:'M0-8 2.4-2.5 8-2.5 3.8 1.4 5.2 7 0 3.8-5.2 7-3.8 1.4-8-2.5-2.4-2.5Z',fill:'#fff',stroke:'#121713','stroke-width':1.5,'stroke-linejoin':'round',role:'img','aria-label':`Spawn · X ${spawn.x.toFixed(2)} · Y ${spawn.y.toFixed(2)}`,'pointer-events':'none'}));
+    const color=spawnAreas[mapId].find(area=>area.name===spawn.faction).color;
+    const g=svg('g',{'data-spawn-point':spawn.id,transform:`translate(${spawn.x} ${-spawn.y}) scale(${1/s})`,fill:color,stroke:'none',role:'img','aria-label':`Spawn · X ${spawn.x.toFixed(2)} · Y ${spawn.y.toFixed(2)}`,'pointer-events':'none'});
+    g.append(s>=12 ? svg('path',{d:'M0-6 1.8-1.9 6-1.9 2.9 1.1 3.9 5.3 0 2.9-3.9 5.3-2.9 1.1-6-1.9-1.8-1.9Z'}) : svg('rect',{x:-3,y:-3,width:6,height:6}));
+    overlays.append(g);
   }
   const origin=point('origin'),target=point('target'),weapon=weapons[weaponId];
   if(origin){
@@ -301,7 +304,7 @@ function renderMap() {
   for(const landmark of landmarks.filter(p=>p.mapId===mapId)) {
     const label=landmark[lang];
     const g=svg('g',{'data-landmark':landmark.id,transform:`translate(${landmark.x} ${-landmark.y}) scale(${1/s})`,role:'img','aria-label':`${label} · X ${landmark.x.toFixed(2)} · Y ${landmark.y.toFixed(2)}`,'pointer-events':'none'});
-    g.append(svg('title',{},label),svg('path',{d:'M-5 6V-2L0-6 5-2V6ZM0-6V-11M-3-9H3M-1 6V2H1V6',fill:'#171e17',stroke:'#e8d79b','stroke-width':1.5}));
+    g.append(svg('title',{},label),s>=12 ? svg('path',{d:'M-5 6V-2L0-6 5-2V6ZM0-6V-11M-3-9H3M-1 6V2H1V6',fill:'#171e17',stroke:'#e8d79b','stroke-width':1.5}) : svg('rect',{x:-3,y:-3,width:6,height:6,fill:'#e8d79b'}));
     if(s>=12) g.append(svg('text',{x:9,y:4,fill:'#f6e6b4','font-size':11,'font-weight':600,'paint-order':'stroke',stroke:'#121713','stroke-width':3,'stroke-linejoin':'round'},label));
     overlays.append(g);
   }
