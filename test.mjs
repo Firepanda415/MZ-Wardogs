@@ -1,4 +1,24 @@
 import assert from 'node:assert/strict';
+import { mortarScale, mortarMil, mortarRange } from './core.mjs';
+// Independent transcription of every numbered row in the seven supplied screenshots.
+assert.deepEqual(mortarScale.slice().reverse(),[[684,150],[661,200],[637,250],[609,300],[578,350],[545,400],[510,450],[470,500],[430,550],[385,600],[340,650],[290,700],[240,750],[187,800],[132,850],[110,900],[80,950]]);
+for (const [distance,mil] of mortarScale) {
+  assert.equal(mortarMil(distance),mil);
+  assert.equal(mortarRange(mil),distance);
+}
+assert.equal(mortarMil(213.5),775);
+assert.equal(mortarMil(527.5),425);
+assert.equal(mortarRange(425),527.5);
+assert.equal(mortarRange(600),385);
+assert.equal(mortarRange(900),110);
+for (const distance of [-1,0,79.99,684.01,1000]) assert.equal(mortarMil(distance),null);
+for (const mil of [-1,100,149.99,950.01,1000]) assert.equal(mortarRange(mil),null);
+assert.equal(mortarMil((100.8-100)*100),950);
+assert.equal(mortarMil((106.84-100)*100),150);
+for (const value of [NaN,Infinity]) {
+  assert.equal(mortarMil(value),null);
+  assert.equal(mortarRange(value),null);
+}
 import { maps, outsideControlZone, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs';
 
 const origin={x:100,y:80}, mortar=weapons.mortar;

@@ -1,9 +1,9 @@
-import { maps, outsideControlZone, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=map-calibration-6';
+import { maps, outsideControlZone, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, mortarRange, mortarMil, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=mortar-sight-6';
 
 const $ = id => document.getElementById(id);
 const strings = {
   zh: { saved:'收藏',distance:'距离',bearing:'罗盘方位',map:'地图',weapon:'武器',range:'射程',browse:'浏览',place:'炮击目标',expand:'展开地图',collapse:'返回计算',origin:'自己',target:'目标',inputOnly:'仅输入',inputOrMap:'输入或点选',lock:'锁定',locked:'已锁定',clear:'清空',save:'保存',name:'给坐标起个名字',about:'使用说明',coordinateHint:'游戏坐标 · 0.01 = 1 m',localNote:'仅保存在此浏览器，清除网站数据会删除收藏。',help1:'先输入自己坐标，再输入目标，或切换「炮击目标」点选地图。锁定后需先解锁才能修改或清空。',help2:'实线圈是最大射程，虚线圈内是过近区域。距离是平面距离，射程数据为社区参考值。',help3:'浏览模式：拖动、双指或滚轮缩放。键盘：方向键移动，+/− 缩放；放置模式下 Enter 放在地图中心。',help4:'展开地图可专心看图，点位与缩放会保留。收藏按地图分别保存，可载入自己或目标。',attribution:'地图及射程参考',unofficial:'非官方玩家工具。游戏地图与商标归各自权利人所有。',in:'射程内',near:'过近 · 小于最小射程',far:'超出最大射程',empty:'输入自己与目标坐标',same:'同一点 · 无方位',browseHint:'拖动浏览 · 双指 / 滚轮缩放',placeHint:'地图已固定 · 点选目标',lockedHint:'目标已锁定 · 解锁后可放置',invalid:'请输入范围内坐标（最多 2 位小数）',noSaved:'这张地图还没有收藏',loadOrigin:'设为自己',loadTarget:'设为目标',remove:'删除',undo:'撤销',deleted:'已删除收藏',savedDone:'坐标已收藏',storageError:'浏览器无法保存数据；本次操作仍可使用。',storageCorrupt:'本地数据无法读取，原数据已保留。',unlockFirst:'请先解锁这个坐标',outside:'请在地图边界内选择炮击目标',loading:'地图加载中…',mapError:'部分地图图片未能加载，请重试',retry:'重试',yourX:'自己 X',yourY:'自己 Y',targetX:'目标 X',targetY:'目标 Y',saveOrigin:'收藏自己坐标',saveTarget:'收藏目标坐标',zoomIn:'放大',zoomOut:'缩小',fit:'全图',close:'关闭',mapLabel:'地图：方向键浏览，加减号缩放；放置模式按回车选择中心点',rangeCircle:'最大射程',minCircle:'最小射程',badFields:'请检查坐标输入' },
-  en: { saved:'Saved',distance:'DISTANCE',bearing:'BEARING',map:'MAP',weapon:'WEAPON',range:'RANGE',browse:'Browse',place:'Artillery target',expand:'Expand map',collapse:'Back to calculator',origin:'You',target:'Target',inputOnly:'Type only',inputOrMap:'Type or tap',lock:'Lock',locked:'Locked',clear:'Clear',save:'Save',name:'Name this position',about:'How to use',coordinateHint:'Game coordinates · 0.01 = 1 m',localNote:'Saved only in this browser. Clearing site data removes saved positions.',help1:'Enter your position, then enter a target or switch to Artillery target and tap the map. Unlock a position before editing or clearing it.',help2:'The solid circle is maximum range. The dashed circle marks the minimum range. Distance is horizontal; weapon ranges are community reference values.',help3:'Browse: drag, pinch or scroll to zoom. Keyboard: arrows to pan, +/− to zoom; Enter places the target at the map center in placement mode.',help4:'Expand the map to browse with your positions and zoom preserved. Saved positions are grouped by map and can be loaded as you or the target.',attribution:'Maps and range data',unofficial:'Unofficial fan tool. Game maps and trademarks belong to their respective owners.',in:'Within range',near:'Too close · below minimum',far:'Beyond maximum range',empty:'Enter your position and target',same:'Same position · no bearing',browseHint:'Drag to pan · pinch / scroll to zoom',placeHint:'Map fixed · tap to place target',lockedHint:'Target locked · unlock to place',invalid:'Enter coordinates within bounds (up to 2 decimals)',noSaved:'No saved positions on this map',loadOrigin:'Set as you',loadTarget:'Set as target',remove:'Delete',undo:'Undo',deleted:'Position deleted',savedDone:'Position saved',storageError:'Browser storage unavailable; this session still works.',storageCorrupt:'Saved data could not be read. Original data preserved.',unlockFirst:'Unlock this position first',outside:'Place the target within the map boundary',loading:'Loading map…',mapError:'Some map images could not load. Please retry.',retry:'Retry',yourX:'Your X',yourY:'Your Y',targetX:'Target X',targetY:'Target Y',saveOrigin:'Save your position',saveTarget:'Save target position',zoomIn:'Zoom in',zoomOut:'Zoom out',fit:'Fit map',close:'Close',mapLabel:'Map: arrow keys to pan, plus/minus to zoom; Enter places a target at the center in placement mode',rangeCircle:'Maximum range',minCircle:'Minimum range',badFields:'Check coordinate inputs' },
+  en: { saved:'Saved',distance:'DIST',bearing:'BEARING',map:'MAP',weapon:'WEAPON',range:'RANGE',browse:'Browse',place:'Artillery target',expand:'Expand map',collapse:'Back to calculator',origin:'You',target:'Target',inputOnly:'Type only',inputOrMap:'Type or tap',lock:'Lock',locked:'Locked',clear:'Clear',save:'Save',name:'Name this position',about:'How to use',coordinateHint:'Game coordinates · 0.01 = 1 m',localNote:'Saved only in this browser. Clearing site data removes saved positions.',help1:'Enter your position, then enter a target or switch to Artillery target and tap the map. Unlock a position before editing or clearing it.',help2:'The solid circle is maximum range. The dashed circle marks the minimum range. Distance is horizontal; weapon ranges are community reference values.',help3:'Browse: drag, pinch or scroll to zoom. Keyboard: arrows to pan, +/− to zoom; Enter places the target at the map center in placement mode.',help4:'Expand the map to browse with your positions and zoom preserved. Saved positions are grouped by map and can be loaded as you or the target.',attribution:'Maps and range data',unofficial:'Unofficial fan tool. Game maps and trademarks belong to their respective owners.',in:'Within range',near:'Too close · below minimum',far:'Beyond maximum range',empty:'Enter your position and target',same:'Same position · no bearing',browseHint:'Drag to pan · pinch / scroll to zoom',placeHint:'Map fixed · tap to place target',lockedHint:'Target locked · unlock to place',invalid:'Enter coordinates within bounds (up to 2 decimals)',noSaved:'No saved positions on this map',loadOrigin:'Set as you',loadTarget:'Set as target',remove:'Delete',undo:'Undo',deleted:'Position deleted',savedDone:'Position saved',storageError:'Browser storage unavailable; this session still works.',storageCorrupt:'Saved data could not be read. Original data preserved.',unlockFirst:'Unlock this position first',outside:'Place the target within the map boundary',loading:'Loading map…',mapError:'Some map images could not load. Please retry.',retry:'Retry',yourX:'Your X',yourY:'Your Y',targetX:'Target X',targetY:'Target Y',saveOrigin:'Save your position',saveTarget:'Save target position',zoomIn:'Zoom in',zoomOut:'Zoom out',fit:'Fit map',close:'Close',mapLabel:'Map: arrow keys to pan, plus/minus to zoom; Enter places a target at the center in placement mode',rangeCircle:'Maximum range',minCircle:'Minimum range',badFields:'Check coordinate inputs' },
 };
 const storageKey = 'mz-wardogs-v1';
 Object.assign(strings.zh,{appTitle:'炮击计算 · 地图标记',swap:'互换自己与目标坐标',swapLocked:'先解锁坐标再互换'});
@@ -97,7 +97,8 @@ function update() {
   const result = origin && target ? solution(origin,target,weapons[weaponId]) : null;
   $('distance').textContent = result ? String(Math.round(result.distance)) : '—';
   $('distance').closest('.metric').dataset.status = result?.status || '';
-  $('range-status').textContent = result ? (result.bearing === null ? t('same') : t(result.status)) : t(document.querySelector('[aria-invalid=true]') ? 'badFields' : 'empty');
+  $('range-status').textContent = result ? (result.bearing === null ? t('same') : '') : t(document.querySelector('[aria-invalid=true]') ? 'badFields' : 'empty');
+  $('range-status').hidden = !$('range-status').textContent;
   const h = heading(result?.bearing ?? null);
   $('bearing').textContent = h.degrees; $('direction').textContent = h.direction;
   $('compass').replaceChildren();
@@ -110,13 +111,37 @@ function update() {
     $('compass').append(tick);
   }
   $('distance-ruler').replaceChildren();
-  $('distance-ruler').hidden = !result;
-  if(result) for(let value=Math.max(0,Math.round(result.distance/100)*100-200);value<=result.distance+200;value+=100) {
-    const tick=document.createElement('span');
-    tick.className=value%200===0?'major':'minor';
-    tick.style.top=`${50+(result.distance-value)*.17}%`;
-    tick.textContent=value%200===0?String(value):'';
-    $('distance-ruler').append(tick);
+  const mil=result && weaponId==='mortar' ? mortarMil(result.distance) : null;
+  $('distance-ruler').hidden = !result || weaponId!=='mortar';
+  if(result && weaponId==='mortar') {
+    // ponytail: native SVG at screenshot coordinates; no fitted ballistics or extrapolated labels.
+    const first=mil===null ? 150 : Math.max(150,Math.min(850,Math.round(mil/50)*50-50));
+    const top=(mil===null ? 440 : Math.min(440,576+(first-mil)*2.18-24))-24;
+    const bottom=mil===null ? 732 : Math.max(712,576+(first+100-mil)*2.18+24);
+    const sight=svg('svg',{viewBox:`600 ${top} 848 ${bottom-top}`,role:'img','aria-label':lang==='zh' ? 'L81 游戏瞄具刻度' : 'L81 game sight scale'});
+    sight.append(svg('title',{},mil===null ? (lang==='zh' ? '距离超出截图刻度范围（80–684 m）' : 'Outside screenshot scale (80–684 m)') : `${Math.round(result.distance)} m · ${mil.toFixed(1)} MIL`));
+    const compass=svg('g',{class:'sight-compass'});
+    compass.append(svg('text',{class:'sight-unit',x:700,y:top+20,'text-anchor':'middle'},'RNG'),svg('text',{class:'sight-unit',x:1350,y:top+20,'text-anchor':'middle'},'MIL'));
+    for(let angle=Math.ceil((center-45)/3)*3;angle<=center+45;angle+=3) {
+      const x=1024+(angle-center)*5.93, major=angle%15===0;
+      compass.append(svg('path',{class:'sight-tick',d:`M${x} ${top+(major?25:29)}V${top+35}`}));
+      if(major) compass.append(svg('text',{class:'sight-bearing',x,y:top+20,'text-anchor':'middle'},String((angle%360+360)%360)));
+    }
+    sight.append(compass);
+    sight.append(svg('path',{class:'sight-reticle',d:'M1024 464V512 M1002 512h44 M1024 688V640 M1002 640h44'}));
+    sight.append(svg('path',{class:'sight-brackets',d:'M976 542h-16v68h16 M1072 542h16v68h-16 M1022 569l-5 7 5 7 M1026 569l5 7-5 7'}));
+    if(mil!==null) {
+      for(let value=first;value<=first+100;value+=50) {
+        const range=mortarRange(value), y=576+(value-mil)*2.18;
+        const row=svg('g',{'data-mil':value});
+        row.append(svg('text',{x:726,y:y+6,'text-anchor':'end'},range===null?'---':`${range}M`),svg('text',{x:1322,y:y+6},range===null?'---':String(value)));
+        row.append(svg('path',{class:'sight-tick',d:`M736 ${y-10}v20 M736 ${y}h20 M1312 ${y-10}v20 M1312 ${y}h-20`}));
+        sight.append(row);
+      }
+    } else {
+      sight.append(svg('text',{class:'sight-unavailable',x:1024,y:710,'text-anchor':'middle'},lang==='zh'?'超出截图刻度范围':'Outside captured scale'));
+    }
+    $('distance-ruler').append(sight);
   }
   $('weapon-range').textContent = `${weapons[weaponId].min}–${weapons[weaponId].max} m`;
   $('saved-count').textContent = saved.filter(p => p.mapId === mapId).length;

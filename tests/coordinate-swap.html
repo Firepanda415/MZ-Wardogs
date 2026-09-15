@@ -25,8 +25,24 @@ try {
   await new Promise(resolve => frame.contentWindow.requestAnimationFrame(resolve));
   const ruler = doc.querySelector('#distance-ruler');
   check(!ruler.hidden, 'Distance ruler is shown for valid coordinates');
-  check([...ruler.querySelectorAll('.major')].map(t=>t.textContent).join(',') === '400,600', 'Range labels every 200 m');
-  check(ruler.querySelector('.minor[style="top: 50%;"]'), '500 m minor tick aligns with the center');
+  check([...ruler.querySelectorAll('[data-mil]')].map(t=>t.textContent).join(',') === '545M400,510M450,470M500', '500 m shows the nearest three captured MIL rows');
+  check(!ruler.querySelector('.sight-distance'), 'No invented horizontal center line');
+  check(!ruler.querySelector('.sight-frame'), 'No corner frame');
+  const units=[...ruler.querySelectorAll('.sight-compass .sight-unit')];
+  check(units.map(unit=>unit.textContent).join(',')==='RNG,MIL', 'Units sit in the compass header');
+  check(units.every(unit=>unit.getAttribute('y')===ruler.querySelector('.sight-bearing').getAttribute('y')), 'Compass and units share one line');
+  for (const [distance,mil,label] of [[684,150,'684M'],[385,600,'385M'],[110,900,'110M'],[80,950,'80M']]) {
+    input('target-x',String(100+distance/100)); input('target-y','80');
+    const row=ruler.querySelector(`[data-mil="${mil}"]`);
+    check(ruler.querySelectorAll('[data-mil]').length===3, 'Exactly three scale rows, including endpoints');
+    check(doc.querySelector('#range-status').hidden, 'Range status text is hidden for valid distinct points');
+    check(row?.querySelector('text').textContent===label, `Original label at ${mil} MIL`);
+    check(Math.abs(Number(row.querySelector('text').getAttribute('y'))-582)<1e-8, 'Requested distance sits at the sight center');
+  }
+  input('target-x','107');
+  check(doc.querySelector('#range-status').hidden, 'Out-of-range status text is hidden');
+  check(ruler.querySelector('.sight-unavailable') && !ruler.querySelector('[data-mil]'), 'Outside captured range does not fabricate ticks');
+  input('target-x','103'); input('target-y','84');
   check(doc.querySelectorAll('#compass .minor').length > 0, 'Compass includes 5 degree minor ticks');
   check([...doc.querySelectorAll('#compass .major')].some(t=>t.textContent==='NE'), 'Compass labels intercardinal directions');
   const fill = doc.querySelector('#range-fill');
@@ -61,11 +77,26 @@ try {
       measure.font = frame.contentWindow.getComputedStyle(field).font;
       check(field.clientWidth >= measure.measureText('100.00').width + 1, 'Three-digit coordinates with two decimals must fit');
     }
+    input('target-x','103.85');
+    check(rect('.distance-metric').bottom <= rect('.bearing-metric').top, 'Mortar distance and compass stack on the left');
+    check(rect('.distance-metric').right <= rect('#distance-ruler').left && rect('.bearing-metric').right <= rect('#distance-ruler').left, 'Mortar sight occupies the right column');
+    const sight=doc.querySelector('#distance-ruler svg');
+    const view=sight.viewBox.baseVal;
+    check(Math.abs(sight.clientWidth/sight.clientHeight-view.width/view.height)<.05, 'Mobile sight keeps original proportions');
+    check(rect('.readout').height<140, 'Compact mobile readout leaves room for the map');
+    for(const metric of ['.distance-metric','.bearing-metric']) {
+      check(rect(metric+' > .eyebrow').right<=rect(metric+' > .metric-value').left, 'Metric labels sit beside their numbers');
+    }
+    for (const label of sight.querySelectorAll('text')) {
+      const box=label.getBBox();
+      check(box.x>=view.x && box.x+box.width<=view.x+view.width && box.y>=view.y && box.y+box.height<=view.y+view.height, `Sight text stays inside the viewport: ${label.textContent} (${box.x}, ${box.y}, ${box.width}, ${box.height})`);
+    }
+    input('target-x','100.00');
   }
   click('origin-clear'); input('target-x','invalid'); input('target-y',''); click('swap-coordinates');
   check(doc.querySelector('#origin-x').value === 'invalid' && doc.querySelector('#origin-x').getAttribute('aria-invalid') === 'true' && doc.querySelector('#target-x').value === '', 'Partial or invalid inputs must be preserved and revalidated');
   click('origin-clear'); check(doc.querySelector('#swap-coordinates').disabled, 'Empty coordinates have nothing to swap');
-  result.textContent = 'PASS: range annulus, swapping, calculation, persistence, locks, partial input, and desktop/mobile layout.';
+  result.textContent = 'PASS: screenshot sight labels, endpoints, no extrapolation, mobile SVG bounds, range annulus, swapping, persistence, locks, and desktop/mobile layout.';
 } catch (error) { result.textContent = `FAIL: ${error.message}`; throw error; }
 finally {
   if (stored === null) localStorage.removeItem('mz-wardogs-v1'); else localStorage.setItem('mz-wardogs-v1',stored);

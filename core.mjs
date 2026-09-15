@@ -47,6 +47,23 @@ export const weapons = {
   mortar: { en: 'L81 Mortar', zh: 'L81 迫击炮', min: 132, max: 684 },
   sph2: { en: 'SPH-2', zh: 'SPH-2 自行炮', min: 780, max: 2629 },
 };
+// Game sight labels transcribed from the seven 20260915 screenshots; see README.
+export const mortarScale = [[80,950],[110,900],[132,850],[187,800],[240,750],[290,700],[340,650],[385,600],[430,550],[470,500],[510,450],[545,400],[578,350],[609,300],[637,250],[661,200],[684,150]];
+export function mortarMil(distance) {
+  if (!Number.isFinite(distance) || distance<80-1e-7 || distance>684+1e-7) return null;
+  distance=Math.max(80,Math.min(684,distance));
+  const found=mortarScale.findIndex(([range])=>range>=distance);
+  const i=Math.max(1,found<0 ? mortarScale.length-1 : found);
+  const [a,ma]=mortarScale[i-1], [b,mb]=mortarScale[i];
+  return ma+(mb-ma)*(distance-a)/(b-a);
+}
+export function mortarRange(mil) {
+  if (!Number.isFinite(mil) || mil<150 || mil>950) return null;
+  const found=mortarScale.findIndex(([,value])=>value<=mil);
+  const i=Math.max(1,found<0 ? mortarScale.length-1 : found);
+  const [a,ma]=mortarScale[i-1], [b,mb]=mortarScale[i];
+  return a+(b-a)*(mil-ma)/(mb-ma);
+}
 export const markerTypes = {
   observe: { zh:'观察点', en:'Observ', color:'#b8daf0', path:'M-8 0Q0-10 8 0Q0 10-8 0ZM-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0' },
   danger: { zh:'危险', en:'Danger', color:'#ffb18d', path:'M0-8 8 6H-8ZM0-3v4M0 3v1' },
