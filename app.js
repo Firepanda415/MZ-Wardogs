@@ -1,4 +1,4 @@
-import { maps, outsideControlZone, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, mortarRange, mortarMil, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=mortar-sight-6';
+import { maps, outsideControlZone, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, mortarRange, mortarMil, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=mortar-range-80';
 
 const $ = id => document.getElementById(id);
 const strings = {

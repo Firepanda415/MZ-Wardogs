@@ -22,6 +22,9 @@ for (const value of [NaN,Infinity]) {
 import { maps, outsideControlZone, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs';
 
 const origin={x:100,y:80}, mortar=weapons.mortar;
+for (const [distance,status] of [[79,'near'],[80,'in'],[110,'in'],[684,'in'],[685,'far']]) {
+  assert.equal(solution(origin,{x:100+distance/100,y:80},mortar).status,status);
+}
 for(const [target,bearing] of [[{x:100,y:81},0],[{x:101,y:80},90],[{x:100,y:79},180],[{x:99,y:80},270]]) {
   assert.equal(solution(origin,target,mortar).bearing,bearing);
   assert.equal(solution(origin,target,mortar).distance,100);
