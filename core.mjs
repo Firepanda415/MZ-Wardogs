@@ -5,26 +5,42 @@ export const maps = {
   zestafona: { name: 'Zestafona', minX: 19.90, maxX: 124.89, minY: 50.70, maxY: 141.90 },
 };
 export const tileBounds = { minX: -0.03, maxX: 163.81, minY: -0.01, maxY: 163.83 };
-// Tower number, game X, game Y. Upstream marker coordinates are meters / 100.
+// Screenshot measurements, 2026-09-14: tower number, game X, game Y. See README.
 export const towers = {
-  bakurani: [[1,80.52,69.85],[2,77.19,70],[3,77.19,73.44],[4,83.64,72.85],[5,82.22,68.41]],
-  ozeti: [[1,95.80,62.82],[2,100.37,59.23],[3,104.49,63.71],[4,100.62,67.64]],
-  zestafona: [[1,68.599808,104.153],[2,72.892416,105.070592],[3,70.172672,100.1717]],
+  bakurani: [[1,80.52,69.89],[2,77.20,70.02],[3,77.20,73.45],[4,83.60,72.81],[5,82.22,68.40]],
+  ozeti: [[1,95.81,62.87],[2,100.34,59.25],[3,104.51,63.71],[4,100.64,67.66]],
+  zestafona: [[1,68.58,104.15],[2,72.89,105.04],[3,70.15,100.18]],
 };
-// WardogTools.gg artillery POI, checked 2026-09-14; meters converted to game units.
-export const landmarks = [{id:'sunflower-church',mapId:'bakurani',x:84.48,y:71.40,zh:'向日葵教堂',en:'Sunflower Church'}];
-// MetaForge Bakurani, 2026-09-14. Registered by full tile extents; see docs/map-data-check.md.
+// Landmark centers measured from user gameplay screenshots; display names chosen locally.
+export const landmarks = [
+  {id:'sunflower-church',mapId:'bakurani',x:84.53,y:71.43,zh:'向日葵教堂',en:'Sunflower Church'},
+  // Center of four user-supplied in-game reference points, 2026-09-14.
+  {id:'factory',mapId:'bakurani',x:78.72,y:71.74,zh:'货柜工厂',en:'Container&Factory'},
+  {id:'hilltop-church',mapId:'ozeti',x:101.36,y:63.21,zh:'山顶教堂',en:'Hilltop Church'},
+];
+// Observed match circles measured from screenshots; not a guarantee for every match.
 export const controlZones = {bakurani: [
-  {id:'default',x:79.875405,y:71.801725,r:5.019608},
+  {id:'lumberyard',x:82.37,y:71.90,r:5.00},
+], ozeti: [
+  // In-game boundary fit, 2026-09-14; approximately 551 m radius.
+  {id:'game-observed',x:97.64,y:62.42,r:5.51},
+], zestafona: [
+  // Zestafona terrain, in-game screenshots, 2026-09-14: estimated center and 500 m radius.
+  {id:'game-observed',x:69.92,y:100.35,r:5},
 ]};
-export const spawnPoints = {bakurani: [
+// Ozeti: own screenshot measurements. Other maps retain prior spawn data (see README).
+export const spawnPoints = {ozeti: [
+  {id:'manticore',faction:'MANTICORE',x:68.26,y:88.07},
+  {id:'lonestar',faction:'LONESTAR',x:83.72,y:30.70},
+  {id:'valkyra',faction:'VALKYRA',x:138.18,y:67.27},
+], bakurani: [
   {id:'alpha',faction:'LONESTAR',x:87.327340,y:32.532218},
   {id:'bravo',faction:'VALKYRA',x:118.691958,y:70.896478},
   {id:'charlie-1',faction:'MANTICORE',x:39.471603,y:77.674957},
 ]};
 export const spawnAreas = {
   bakurani: [{"name":"VALKYRA","color":"#d86666","points":[[117.5,73.76],[121.22,70.71],[118.18,66.99],[114.45,70.04]]},{"name":"MANTICORE","color":"#82c596","points":[[38.68,79.88],[43.39,78.85],[42.35,74.15],[37.65,75.18]]},{"name":"LONESTAR","color":"#5fa8d3","points":[[83.08,35.27],[87.72,36.51],[88.97,31.86],[84.32,30.62]]}],
-  ozeti: [{"name":"VALKYRA","color":"#d86666","points":[[133.98,68.51],[138.58,69.92],[139.99,65.32],[135.39,63.91]]},{"name":"MANTICORE","color":"#82c596","points":[[69.22,90.85],[73.09,87.98],[70.22,84.12],[66.36,86.99]]},{"name":"LONESTAR","color":"#5fa8d3","points":[[81.52,34.03],[86.33,34.03],[86.33,29.21],[81.53,29.22]]}],
+  ozeti: [{"name":"VALKYRA","color":"#d86666","points":[[133.93,68.56],[138.53,69.96],[139.94,65.37],[135.35,63.97]]},{"name":"MANTICORE","color":"#82c596","points":[[69.06,90.89],[72.96,88.09],[70.13,84.25],[66.26,86.98]]},{"name":"LONESTAR","color":"#5fa8d3","points":[[81.48,34.06],[86.29,34.06],[86.27,29.25],[81.46,29.25]]}],
   zestafona: [{"name":"MANTICORE","color":"#82c596","points":[[103.3011,111.7061],[101.9084,116.31],[106.5123,117.6862],[107.8886,113.0987]]},{"name":"VALKYRA","color":"#d86666","points":[[40.2718,121.8805],[35.7007,123.3551],[37.175296,127.9262],[41.7464,126.4517]]},{"name":"LONESTAR","color":"#5fa8d3","points":[[65.1264,64.8151],[66.306,69.4681],[70.9591,68.2721],[69.7794,63.619]]}],
 };
 export const weapons = {
@@ -61,4 +77,9 @@ export function heading(bearing) {
 }
 export function screenToWorld(x, y, view) {
   return { x: view.x + (x - view.width / 2) / view.scale, y: view.y - (y - view.height / 2) / view.scale };
+}
+
+export function outsideControlZone(mapId,x,y) {
+  const zones=controlZones[mapId];
+  return !!zones?.length && !zones.some(z=>Math.hypot(x-z.x,y-z.y)<=z.r);
 }

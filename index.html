@@ -10,7 +10,7 @@
   <link rel="canonical" href="https://mqzh.science/wdtool/">
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./style.css?v=spacing-3">
-  <script type="module" src="./app.js?v=markers-2"></script>
+  <script type="module" src="./app.js?v=copy-8"></script>
 </head>
 <body>
 <main id="app">
@@ -70,7 +70,7 @@
     </article>
     <button id="swap-coordinates" class="icon-button" type="button" aria-label="互换自己与目标坐标"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16m-4-4 4 4-4 4M20 17H4m4-4-4 4 4 4"/></svg></button>
     <article class="coordinate-card origin-card" data-point="origin">
-      <div class="coordinate-heading"><h2><span class="point-dot"></span><span data-i18n="origin">自己</span><small data-i18n="inputOnly">仅输入</small></h2><div class="point-actions"><button id="origin-lock" aria-pressed="false"><svg class="icon"><use href="#unlock"/></svg><span data-i18n="lock">锁定</span></button><button id="origin-clear" data-i18n="clear">清空</button></div></div>
+      <div class="coordinate-heading"><h2><span class="point-dot"></span><span data-i18n="origin">自己</span><small data-i18n="inputOnly">输入或点选</small></h2><div class="point-actions"><button id="origin-lock" aria-pressed="false"><svg class="icon"><use href="#unlock"/></svg><span data-i18n="lock">锁定</span></button><button id="origin-clear" data-i18n="clear">清空</button></div></div>
       <div class="coordinate-inputs"><label><span>X</span><input id="origin-x" type="text" inputmode="decimal" autocomplete="off" placeholder="—" aria-label="自己 X / Your X" aria-describedby="origin-error"></label><label><span>Y</span><input id="origin-y" type="text" inputmode="decimal" autocomplete="off" placeholder="—" aria-label="自己 Y / Your Y" aria-describedby="origin-error"></label><button id="origin-save" class="save-point icon-button" aria-label="收藏自己坐标 / Save your position"><svg class="icon"><use href="#bookmark"/></svg></button></div>
       <p id="origin-error" class="input-error" hidden></p>
     </article>
@@ -89,13 +89,14 @@
 <dialog id="info-dialog" aria-labelledby="info-title">
   <div class="dialog-heading"><h2 id="info-title" data-i18n="about">使用说明</h2><button class="close-dialog icon-button" aria-label="关闭 / Close">×</button></div>
   <h3 class="help-mode-title"><span class="brand-mark" aria-hidden="true">MZ</span><span data-i18n="artilleryTitle">炮击计算</span></h3>
-  <p data-i18n="help1">先输入自己坐标，再输入目标，或切换「炮击目标」点选地图。锁定后需先解锁才能修改或清空。</p>
+  <p data-i18n="help1">炮击计算：输入自己和目标坐标，或点击地图上方「自己」「目标」后点选位置。点选时地图固定；「浏览」恢复拖动缩放。锁定后需先解锁才能修改、清空或互换坐标。</p>
   <p data-i18n="help2">实线圈是最大射程，虚线圈内是过近区域。距离是平面距离，射程数据为社区参考值。</p>
-  <h3 class="help-mode-title"><span class="brand-mark" aria-hidden="true">MZ</span><span data-i18n="markersTitle">纯地图标记</span></h3>
-  <p data-i18n="help3">浏览模式：拖动、双指或滚轮缩放。键盘：方向键移动，+/− 缩放；放置模式下 Enter 放在地图中心。</p>
-  <p data-i18n="help4">展开地图可专心看图，点位与缩放会保留。收藏按地图分别保存，可载入自己或目标。</p>
+  <h3 class="help-mode-title"><span class="brand-mark" aria-hidden="true">MZ</span><span data-i18n="markersTitle">地图标记</span></h3>
+  <p data-i18n="help3">地图标记：点击「标记」自动展开地图，选择观察点、危险或集合点，点空白添加，点已有标记删除。标记时仍可拖动、双指或滚轮缩放；拖动不会添加标记。「关闭」收起标记菜单，右上角按钮返回计算。</p>
+  <p data-i18n="help4">坐标、收藏和标记按地图分别保存在当前浏览器。键盘方向键浏览，+/− 缩放；点选或标记时 Enter 放在地图中心。</p>
   <p class="small muted"><span data-i18n="attribution">地图及射程参考</span> <a href="https://github.com/apollyon-sys/wardogs-calculator" target="_blank" rel="noreferrer">Apollyon / wardogs-calculator</a> · 2026-09-14</p>
-  <p class="small muted" data-i18n="unofficial">独立维护的非官方玩家工具，不代表 BULKHEAD、WARDOGS 开发团队或 Apollyon，亦不声称获得其背书。游戏地图与商标归各自权利人所有，不属于上游 MIT 许可范围。地图图片由本站提供。</p>
+  <p class="small muted" data-i18n="unofficial">非官方玩家工具。游戏地图与商标归各自权利人所有。</p>
+  <p class="small muted"><a href="./THIRD_PARTY_NOTICES.md">素材来源与许可 / Credits &amp; licenses</a></p>
 </dialog>
 <div id="toast" role="status" hidden></div>
 <noscript>此工具需要启用 JavaScript。 JavaScript is required.</noscript>

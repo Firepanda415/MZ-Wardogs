@@ -8,16 +8,18 @@ Author: [Apollyon](https://github.com/apollyon-sys). Original application: [ward
 
 This project adapts the following upstream data into `core.mjs`:
 
-- Map bounds, tile calibration, tower positions and spawn-area polygons from [maps/](https://github.com/apollyon-sys/wardogs-calculator/tree/ef7cf2d8cb637532b1595b634b87469be6f507b4/maps). Only the required fields are retained; tower and polygon coordinates are converted from meters to game coordinate units.
+- Map bounds, tile calibration and the retained Bakurani/Zestafona spawn-area polygons from [maps/](https://github.com/apollyon-sys/wardogs-calculator/tree/ef7cf2d8cb637532b1595b634b87469be6f507b4/maps). Only the required fields are retained; polygon coordinates are converted from meters to game coordinate units.
 - Minimum and maximum weapon ranges from [data/weapons.json](https://github.com/apollyon-sys/wardogs-calculator/blob/ef7cf2d8cb637532b1595b634b87469be6f507b4/data/weapons.json), converted from kilometers to meters.
 
 Original WebP map tiles were downloaded from the upstream public asset service, `assets.wardogs-artillery.com/releases/assets-v1/`, using URLs supplied by the map configuration. They are bundled in `assets/maps/` and served by this project's own host; the application makes no runtime requests to the upstream tile service. The bundle covers playable bounds at zoom levels 0–7, without re-encoding. `assets/maps/manifest.json` records the source URL, download time and each file's SHA-256. The asset release is separate from the pinned source-code snapshot.
 
 Thank you to Apollyon for making the original tool and data available. This project is maintained independently; changes in this repository are the responsibility of its maintainers.
 
-## WardogTools.gg — coordinate reference
+## Independently measured locations
 
-[WardogTools.gg Artillery Calculator](https://wardogtools.gg/artillery/) was checked on September 14, 2026. The Sunflower Church location in Bakurani (game X 84.48, Y 71.40) is credited to that reference. We use the factual location and our own SVG symbol, not their application code, icons, elevation textures or map tiles. See `docs/map-data-check.md` for the comparison and the unresolved Zestafona calibration difference. This credit does not claim endorsement or apply the upstream Apollyon MIT license to WardogTools materials.
+All current tower, landmark and Control Zone coordinates, plus Ozeti spawn corners and icon positions, are measured from maintainer-supplied gameplay screenshots. Measurements and screenshot filenames are documented in README.md.
+
+[WardogTools.gg](https://wardogtools.gg/artillery/) and [MetaForge](https://metaforge.app/wardogs/map/ozeti) are references for the Sunflower Church and Church Top place names. Hilltop Church is the display name used here. No code or icons from those services are included.
 
 ## WARDOGS assets
 
@@ -53,11 +55,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-## MetaForge map coordinates
+## MetaForge spawn coordinates
 
-Bakurani Control Zone centers/radii and outer Spawn point coordinates were
-consulted on [MetaForge](https://metaforge.app/wardogs/map/bakurani) on 2026-09-14.
-See [the coordinate comparison](docs/map-data-check.md) for the public data
-source and conversion. Circle and star artwork is drawn locally; no MetaForge
-code or image assets are included, and its material is not covered by the
-Apollyon MIT notice below.
+The retained Bakurani spawn icon coordinates were obtained from [MetaForge](https://metaforge.app/wardogs/map/bakurani) on 2026-09-14. These three points use the source coordinates. Current values are listed in README.md. No MetaForge code or image assets are included; its material is not covered by the Apollyon MIT license.

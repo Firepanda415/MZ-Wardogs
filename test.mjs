@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { maps, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs';
+import { maps, outsideControlZone, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs';
 
 const origin={x:100,y:80}, mortar=weapons.mortar;
 for(const [target,bearing] of [[{x:100,y:81},0],[{x:101,y:80},90],[{x:100,y:79},180],[{x:99,y:80},270]]) {
@@ -32,7 +32,7 @@ for(const [mapId,count] of [['bakurani',5],['ozeti',4],['zestafona',3]]) {
   assert.equal(new Set(towers[mapId].map(([number])=>number)).size,count);
   for(const [,x,y] of towers[mapId]) assert.ok(validPoint({x,y},maps[mapId]));
 }
-assert.deepEqual(towers.bakurani[0],[1,80.52,69.85]);
+assert.deepEqual(towers.bakurani[0],[1,80.52,69.89]);
 for(const [mapId,areas] of Object.entries(spawnAreas)) {
   assert.deepEqual(areas.map(a=>a.name).sort(),['LONESTAR','MANTICORE','VALKYRA']);
   for(const area of areas) {
@@ -47,16 +47,50 @@ for(const patch of [{type:'<script>'},{type:'constructor'},{mapId:'missing'},{id
 assert.ok(!validMarker(null));
 console.log('Passed: calculations, bounds, tower/spawn data and saved marker validation.');
 
-assert.deepEqual(landmarks.map(({mapId,x,y})=>({mapId,x,y})),[{mapId:"bakurani",x:84.48,y:71.40}]);
+assert.deepEqual(landmarks.map(({mapId,x,y})=>({mapId,x,y})),[{mapId:"bakurani",x:84.53,y:71.43},{mapId:"bakurani",x:78.72,y:71.74},{mapId:"ozeti",x:101.36,y:63.21}]);
 for(const p of landmarks) assert.ok(validPoint(p,maps[p.mapId]));
 
 assert.equal(controlZones.bakurani.length,1);
 assert.equal(spawnPoints.bakurani.length,3);
 for(const p of [...controlZones.bakurani,...spawnPoints.bakurani]) assert.ok(validPoint(p,maps.bakurani));
-for(const p of controlZones.bakurani) assert.ok(Math.abs(p.r-50000/1632000*163.84)<1e-6);
+for(const [x,y] of [[82.31,66.90],[82.15,76.90],[87.37,71.95]]) {
+  const z=controlZones.bakurani[0];
+  assert.ok(Math.abs(Math.hypot(x-z.x,y-z.y)-z.r)<.03);
+}
 assert.ok(Math.abs(spawnPoints.bakurani[0].x-((-761839+1632000)/1632000*163.84-.03))<1e-6);
 assert.ok(Math.abs(spawnPoints.bakurani[0].y-((732151-408000)/1632000*163.84-.01))<1e-6);
 console.log('Passed: Control Zone and Spawn point registration.');
 
-assert.equal(controlZones.bakurani[0].id,'default');
+assert.equal(controlZones.bakurani[0].id,'lumberyard');
 for(const p of spawnPoints.bakurani) assert.ok(spawnAreas.bakurani.some(a=>a.name===p.faction));
+
+assert.deepEqual(towers.bakurani.filter(([,x,y])=>outsideControlZone('bakurani',x,y)).map(([n])=>n),[2,3]);
+assert.equal(outsideControlZone('ozeti',95.8,62.82),false);
+const z=controlZones.bakurani[0];
+assert.equal(outsideControlZone('bakurani',z.x,z.y),false);
+assert.equal(outsideControlZone('bakurani',z.x+z.r+.001,z.y),true);
+assert.equal(maps.zestafona.name,'Zestafona');
+assert.equal(maps.ozeti.name,'Ozeti');
+assert.equal(controlZones.zestafona.length,1);
+assert.ok(validPoint(controlZones.zestafona[0],maps.zestafona));
+assert.deepEqual(towers.zestafona.filter(([,x,y])=>outsideControlZone('zestafona',x,y)).map(([n])=>n),[2]);
+
+assert.deepEqual(towers.zestafona[0],[1,68.58,104.15]);
+assert.deepEqual(towers.zestafona[2],[3,70.15,100.18]);
+assert.equal(controlZones.ozeti.length,1);
+assert.ok(validPoint(controlZones.ozeti[0],maps.ozeti));
+assert.deepEqual(towers.ozeti.filter(([,x,y])=>outsideControlZone('ozeti',x,y)).map(([n])=>n),[3,4]);
+// Independent screenshot boundary readings, allowing 3 m cursor/outline uncertainty.
+for(const [x,y] of [[92.14,62.42],[97.71,56.89],[97.78,56.92]]) {
+  const z=controlZones.ozeti[0];
+  assert.ok(Math.abs(Math.hypot(x-z.x,y-z.y)-z.r)<.03);
+}
+
+// Each measured spawn icon must sit inside its own convex four-corner area.
+for(const p of spawnPoints.ozeti) {
+  const a=spawnAreas.ozeti.find(a=>a.name===p.faction);
+  const signs=a.points.map(([x,y],i)=>{const [u,v]=a.points[(i+1)%4];return Math.sign((u-x)*(p.y-y)-(v-y)*(p.x-x));});
+  assert.ok(signs.every(s=>s===signs[0]));
+  assert.ok(validPoint(p,maps.ozeti));
+}
+assert.equal(spawnPoints.ozeti.length,3);
