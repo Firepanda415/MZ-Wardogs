@@ -1,4 +1,4 @@
-import { maps, tileBounds, towers, landmarks, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=church-1';
+import { maps, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=rulers-1';
 
 const $ = id => document.getElementById(id);
 const strings = {
@@ -102,10 +102,21 @@ function update() {
   $('bearing').textContent = h.degrees; $('direction').textContent = h.direction;
   $('compass').replaceChildren();
   const center = result?.bearing ?? 0;
-  for (let angle = Math.floor((center-45)/15)*15; angle <= center+45; angle += 15) {
+  for (let angle = Math.ceil((center-45)/5)*5; angle <= center+45; angle += 5) {
     const tick = document.createElement('span'); tick.style.left = `${50+(angle-center)/90*100}%`;
-    const a = (angle+360)%360; tick.textContent = a%90 === 0 ? ['N','E','S','W'][a/90] : String(a);
+    const a = (angle+360)%360;
+    tick.className = a%15===0 ? 'major' : 'minor';
+    tick.textContent = a%15===0 ? (a%45===0 ? ['N','NE','E','SE','S','SW','W','NW'][a/45] : String(a)) : '';
     $('compass').append(tick);
+  }
+  $('distance-ruler').replaceChildren();
+  $('distance-ruler').hidden = !result;
+  if(result) for(let value=Math.max(0,Math.round(result.distance/100)*100-200);value<=result.distance+200;value+=100) {
+    const tick=document.createElement('span');
+    tick.className=value%200===0?'major':'minor';
+    tick.style.top=`${50+(result.distance-value)*.17}%`;
+    tick.textContent=value%200===0?String(value):'';
+    $('distance-ruler').append(tick);
   }
   $('weapon-range').textContent = `${weapons[weaponId].min}–${weapons[weaponId].max} m`;
   $('saved-count').textContent = saved.filter(p => p.mapId === mapId).length;
@@ -257,6 +268,12 @@ function renderMap() {
     const name=svg('text',{x:cx,y:-cy-10/s,fill:area.color,'font-size':10/s,'font-weight':600,'text-anchor':anchor,'paint-order':'stroke',stroke:'#121713','stroke-width':3/s,'stroke-linejoin':'round'});
     name.append(svg('tspan',{x:cx},area.name),svg('tspan',{x:cx,dy:12/s},lang==='zh'?'出生区':'Spawn'));
     g.append(name);overlays.append(g);
+  }
+  for(const zone of controlZones[mapId]||[]) {
+    overlays.append(svg('circle',{'data-control-zone':zone.id,cx:zone.x,cy:-zone.y,r:zone.r,fill:'none',stroke:'#fff','stroke-width':1.5,'stroke-dasharray':'6 5','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+  }
+  for(const spawn of spawnPoints[mapId]||[]) {
+    overlays.append(svg('path',{'data-spawn-point':spawn.id,transform:`translate(${spawn.x} ${-spawn.y}) scale(${1/s})`,d:'M0-8 2.4-2.5 8-2.5 3.8 1.4 5.2 7 0 3.8-5.2 7-3.8 1.4-8-2.5-2.4-2.5Z',fill:'#fff',stroke:'#121713','stroke-width':1.5,'stroke-linejoin':'round',role:'img','aria-label':`Spawn · X ${spawn.x.toFixed(2)} · Y ${spawn.y.toFixed(2)}`,'pointer-events':'none'}));
   }
   const origin=point('origin'),target=point('target'),weapon=weapons[weaponId];
   if(origin){

@@ -47,3 +47,13 @@ dialog #toast{position:sticky;left:auto;bottom:0;transform:none;max-width:100%;m
 
 .help-mode-title{display:flex;align-items:center;gap:8px;font-size:15px;letter-spacing:.06em;margin:20px 0 8px}
 @media(max-width:700px){.map-tools{flex-direction:column}.map-tools .mode-switch button{padding:4px 7px}.map-tools .mode-switch .icon{display:none}}
+
+.compass span.minor:before{height:2px;opacity:.6}.compass span.major:before{height:5px}
+.distance-metric{grid-template-columns:auto minmax(0,1fr) 56px}
+.distance-ruler{grid-column:3;grid-row:1/3;align-self:center;position:relative;height:100px;overflow:hidden;color:var(--muted);font:10px/1 monospace;mask-image:linear-gradient(transparent,#000 12%,#000 88%,transparent)}
+.distance-ruler span{position:absolute;right:9px;transform:translateY(-50%);padding-right:14px}
+.distance-ruler span:after{content:'';position:absolute;right:0;top:50%;width:7px;border-top:1px solid #738169}
+.distance-ruler span.major:after{width:11px}
+.distance-ruler:after{content:'';position:absolute;right:0;top:50%;width:9px;border-top:2px solid var(--accent)}
+.distance-metric>.status{grid-column:1/3}
+@media(max-width:700px){.distance-metric{grid-template-columns:minmax(0,1fr) 42px;column-gap:3px}.distance-metric>.eyebrow{grid-column:1;grid-row:1}.distance-metric>.metric-value{grid-column:1;grid-row:2;gap:3px}.distance-metric>.status{grid-column:1/-1;grid-row:3}.distance-ruler{grid-column:2;grid-row:1/3;height:64px;font-size:8px}.distance-ruler span{right:7px;padding-right:10px}.distance-ruler span.major:after{width:8px}.distance-ruler span:after{width:5px}.distance-ruler:after{width:7px}}

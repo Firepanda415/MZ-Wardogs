@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { maps, towers, landmarks, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs';
+import { maps, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs';
 
 const origin={x:100,y:80}, mortar=weapons.mortar;
 for(const [target,bearing] of [[{x:100,y:81},0],[{x:101,y:80},90],[{x:100,y:79},180],[{x:99,y:80},270]]) {
@@ -49,3 +49,11 @@ console.log('Passed: calculations, bounds, tower/spawn data and saved marker val
 
 assert.deepEqual(landmarks.map(({mapId,x,y})=>({mapId,x,y})),[{mapId:"bakurani",x:84.48,y:71.40}]);
 for(const p of landmarks) assert.ok(validPoint(p,maps[p.mapId]));
+
+assert.equal(controlZones.bakurani.length,3);
+assert.equal(spawnPoints.bakurani.length,3);
+for(const p of [...controlZones.bakurani,...spawnPoints.bakurani]) assert.ok(validPoint(p,maps.bakurani));
+for(const p of controlZones.bakurani) assert.ok(Math.abs(p.r-50000/1632000*163.84)<1e-6);
+assert.ok(Math.abs(spawnPoints.bakurani[0].x-((-761839+1632000)/1632000*163.84-.03))<1e-6);
+assert.ok(Math.abs(spawnPoints.bakurani[0].y-((732151-408000)/1632000*163.84-.01))<1e-6);
+console.log('Passed: Control Zone and Spawn point registration.');

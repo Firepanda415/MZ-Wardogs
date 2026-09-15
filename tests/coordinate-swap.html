@@ -23,6 +23,12 @@ try {
   doc.querySelector('#weapon').dispatchEvent(new frame.contentWindow.Event('change'));
   for (const [id,value] of Object.entries({'origin-x':'100','origin-y':'80','target-x':'103','target-y':'84'})) input(id,value);
   await new Promise(resolve => frame.contentWindow.requestAnimationFrame(resolve));
+  const ruler = doc.querySelector('#distance-ruler');
+  check(!ruler.hidden, 'Distance ruler is shown for valid coordinates');
+  check([...ruler.querySelectorAll('.major')].map(t=>t.textContent).join(',') === '400,600', 'Range labels every 200 m');
+  check(ruler.querySelector('.minor[style="top: 50%;"]'), '500 m minor tick aligns with the center');
+  check(doc.querySelectorAll('#compass .minor').length > 0, 'Compass includes 5 degree minor ticks');
+  check([...doc.querySelectorAll('#compass .major')].some(t=>t.textContent==='NE'), 'Compass labels intercardinal directions');
   const fill = doc.querySelector('#range-fill');
   const at = x => fill.isPointInFill(new frame.contentWindow.DOMPoint(x,0));
   check(!at(0) && !at(1) && at(3) && !at(7), 'Only the 132–684 m firing annulus should be filled');

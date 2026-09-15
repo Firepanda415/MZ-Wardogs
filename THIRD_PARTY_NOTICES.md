@@ -53,3 +53,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
+## MetaForge map coordinates
+
+Bakurani Control Zone centers/radii and outer Spawn point coordinates were
+consulted on [MetaForge](https://metaforge.app/wardogs/map/bakurani) on 2026-09-14.
+See [the coordinate comparison](docs/map-data-check.md) for the public data
+source and conversion. Circle and star artwork is drawn locally; no MetaForge
+code or image assets are included, and its material is not covered by the
+Apollyon MIT notice below.
