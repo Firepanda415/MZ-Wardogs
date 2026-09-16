@@ -22,9 +22,11 @@ jobs:
         with:
           node-version: '22'
       - run: node test.mjs
+      - run: node tests/routing.mjs
       - run: |
           mkdir _site
-          cp index.html style.css app.js core.mjs favicon.svg THIRD_PARTY_NOTICES.md _site/
+          cp index.html style.css app.js core.mjs roads-*.mjs routing.mjs favicon.svg THIRD_PARTY_NOTICES.md _site/
+          cp -r assets _site/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
