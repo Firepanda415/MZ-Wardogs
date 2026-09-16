@@ -1,13 +1,17 @@
-import { maps, outsideControlZone, defaultSavedPositions, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, mortarRange, mortarMil, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=zone-favorites-1';
+import { maps, outsideControlZone, defaultSavedPositions, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, mortarRange, mortarMil, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=spawn-3';
+import { roads as bakuraniRoads } from './roads-bakurani.mjs?v=roads-15';
+import { roads as ozetiRoads } from './roads-ozeti.mjs?v=roads-15';
+import { roads as zestafonaRoads } from './roads-zestafona.mjs?v=roads-15';
+import { buildRoadGraph, findRoadRoute } from './routing.mjs?v=roads-1';
 
 const $ = id => document.getElementById(id);
 const strings = {
-  zh: { saved:'收藏',distance:'距离',bearing:'罗盘方位',map:'地图',weapon:'武器',range:'射程',browse:'浏览',place:'炮击目标',expand:'展开地图',collapse:'返回计算',origin:'自己',target:'目标',inputOnly:'仅输入',inputOrMap:'输入或点选',lock:'锁定',locked:'已锁定',clear:'清空',save:'保存',name:'给坐标起个名字',about:'使用说明',coordinateHint:'游戏坐标 · 0.01 = 1 m',localNote:'仅保存在此浏览器，清除网站数据会删除收藏。',help1:'先输入自己坐标，再输入目标，或切换「炮击目标」点选地图。锁定后需先解锁才能修改或清空。',help2:'实线圈是最大射程，虚线圈内是过近区域。距离是平面距离，射程数据为社区参考值。',help3:'浏览模式：拖动、双指或滚轮缩放。键盘：方向键移动，+/− 缩放；放置模式下 Enter 放在地图中心。',help4:'展开地图可专心看图，点位与缩放会保留。收藏按地图分别保存，可载入自己或目标。',attribution:'地图及射程参考',unofficial:'非官方玩家工具。游戏地图与商标归各自权利人所有。',in:'射程内',near:'过近 · 小于最小射程',far:'超出最大射程',empty:'输入自己与目标坐标',same:'同一点 · 无方位',browseHint:'拖动浏览 · 双指 / 滚轮缩放',placeHint:'地图已固定 · 点选目标',lockedHint:'目标已锁定 · 解锁后可放置',invalid:'请输入范围内坐标（最多 2 位小数）',noSaved:'这张地图还没有收藏',loadOrigin:'设为自己',loadTarget:'设为目标',remove:'删除',undo:'撤销',deleted:'已删除收藏',savedDone:'坐标已收藏',storageError:'浏览器无法保存数据；本次操作仍可使用。',storageCorrupt:'本地数据无法读取，原数据已保留。',unlockFirst:'请先解锁这个坐标',outside:'请在地图边界内选择炮击目标',loading:'地图加载中…',mapError:'部分地图图片未能加载，请重试',retry:'重试',yourX:'自己 X',yourY:'自己 Y',targetX:'目标 X',targetY:'目标 Y',saveOrigin:'收藏自己坐标',saveTarget:'收藏目标坐标',zoomIn:'放大',zoomOut:'缩小',fit:'全图',close:'关闭',mapLabel:'地图：方向键浏览，加减号缩放；放置模式按回车选择中心点',rangeCircle:'最大射程',minCircle:'最小射程',badFields:'请检查坐标输入' },
-  en: { saved:'Saved',distance:'DIST',bearing:'BEARING',map:'MAP',weapon:'WEAPON',range:'RANGE',browse:'Browse',place:'Artillery target',expand:'Expand map',collapse:'Back to calculator',origin:'You',target:'Target',inputOnly:'Type only',inputOrMap:'Type or tap',lock:'Lock',locked:'Locked',clear:'Clear',save:'Save',name:'Name this position',about:'How to use',coordinateHint:'Game coordinates · 0.01 = 1 m',localNote:'Saved only in this browser. Clearing site data removes saved positions.',help1:'Enter your position, then enter a target or switch to Artillery target and tap the map. Unlock a position before editing or clearing it.',help2:'The solid circle is maximum range. The dashed circle marks the minimum range. Distance is horizontal; weapon ranges are community reference values.',help3:'Browse: drag, pinch or scroll to zoom. Keyboard: arrows to pan, +/− to zoom; Enter places the target at the map center in placement mode.',help4:'Expand the map to browse with your positions and zoom preserved. Saved positions are grouped by map and can be loaded as you or the target.',attribution:'Maps and range data',unofficial:'Unofficial fan tool. Game maps and trademarks belong to their respective owners.',in:'Within range',near:'Too close · below minimum',far:'Beyond maximum range',empty:'Enter your position and target',same:'Same position · no bearing',browseHint:'Drag to pan · pinch / scroll to zoom',placeHint:'Map fixed · tap to place target',lockedHint:'Target locked · unlock to place',invalid:'Enter coordinates within bounds (up to 2 decimals)',noSaved:'No saved positions on this map',loadOrigin:'Set as you',loadTarget:'Set as target',remove:'Delete',undo:'Undo',deleted:'Position deleted',savedDone:'Position saved',storageError:'Browser storage unavailable; this session still works.',storageCorrupt:'Saved data could not be read. Original data preserved.',unlockFirst:'Unlock this position first',outside:'Place the target within the map boundary',loading:'Loading map…',mapError:'Some map images could not load. Please retry.',retry:'Retry',yourX:'Your X',yourY:'Your Y',targetX:'Target X',targetY:'Target Y',saveOrigin:'Save your position',saveTarget:'Save target position',zoomIn:'Zoom in',zoomOut:'Zoom out',fit:'Fit map',close:'Close',mapLabel:'Map: arrow keys to pan, plus/minus to zoom; Enter places a target at the center in placement mode',rangeCircle:'Maximum range',minCircle:'Minimum range',badFields:'Check coordinate inputs' },
+  zh: { saved:'收藏',distance:'距离',bearing:'罗盘方位',map:'地图',weapon:'武器',range:'射程',browse:'浏览',place:'炮击目标',expand:'展开地图',collapse:'返回计算',origin:'自己',target:'目标',inputOnly:'仅输入',inputOrMap:'输入或点选',lock:'锁定',locked:'已锁定',clear:'清空',save:'保存',name:'给坐标起个名字',about:'使用说明',coordinateHint:'游戏坐标 · 0.01 = 1 m',localNote:'仅保存在此浏览器，清除网站数据会删除收藏。',help1:'先输入自己坐标，再输入目标，或切换「炮击目标」点选地图。锁定后需先解锁才能修改或清空。',help2:'实线圈是最大射程，虚线圈内是过近区域。距离是平面距离；L81 射程来自本项目实测，SPH-2 为社区参考值。',help3:'浏览模式：拖动、双指或滚轮缩放。键盘：方向键移动，+/− 缩放；放置模式下 Enter 放在地图中心。',help4:'展开地图可专心看图，点位与缩放会保留。收藏按地图分别保存，可载入自己或目标。',attribution:'地图及射程参考',unofficial:'非官方玩家工具。游戏地图与商标归各自权利人所有。',in:'射程内',near:'过近 · 小于最小射程',far:'超出最大射程',empty:'输入自己与目标坐标',same:'同一点 · 无方位',browseHint:'拖动浏览 · 双指 / 滚轮缩放',placeHint:'地图已固定 · 点选目标',lockedHint:'目标已锁定 · 解锁后可放置',invalid:'请输入范围内坐标（最多 2 位小数）',noSaved:'这张地图还没有收藏',loadOrigin:'设为自己',loadTarget:'设为目标',remove:'删除',undo:'撤销',deleted:'已删除收藏',savedDone:'坐标已收藏',storageError:'浏览器无法保存数据；本次操作仍可使用。',storageCorrupt:'本地数据无法读取，原数据已保留。',unlockFirst:'请先解锁这个坐标',outside:'请在地图边界内选择炮击目标',loading:'地图加载中…',mapError:'部分地图图片未能加载，请重试',retry:'重试',yourX:'自己 X',yourY:'自己 Y',targetX:'目标 X',targetY:'目标 Y',saveOrigin:'收藏自己坐标',saveTarget:'收藏目标坐标',zoomIn:'放大',zoomOut:'缩小',fit:'全图',close:'关闭',mapLabel:'地图：方向键浏览，加减号缩放；放置模式按回车选择中心点',rangeCircle:'最大射程',minCircle:'最小射程',badFields:'请检查坐标输入' },
+  en: { saved:'Saved',distance:'DIST',bearing:'BEARING',map:'MAP',weapon:'WEAPON',range:'RANGE',browse:'Browse',place:'Artillery target',expand:'Expand map',collapse:'Back to calculator',origin:'You',target:'Target',inputOnly:'Type only',inputOrMap:'Type or tap',lock:'Lock',locked:'Locked',clear:'Clear',save:'Save',name:'Name this position',about:'How to use',coordinateHint:'Game coordinates · 0.01 = 1 m',localNote:'Saved only in this browser. Clearing site data removes saved positions.',help1:'Enter your position, then enter a target or switch to Artillery target and tap the map. Unlock a position before editing or clearing it.',help2:'The solid circle is maximum range. The dashed circle marks the minimum range. Distance is horizontal. L81 ranges are measured by this project; SPH-2 ranges are community references.',help3:'Browse: drag, pinch or scroll to zoom. Keyboard: arrows to pan, +/− to zoom; Enter places the target at the map center in placement mode.',help4:'Expand the map to browse with your positions and zoom preserved. Saved positions are grouped by map and can be loaded as you or the target.',attribution:'Maps and range data',unofficial:'Unofficial fan tool. Game maps and trademarks belong to their respective owners.',in:'Within range',near:'Too close · below minimum',far:'Beyond maximum range',empty:'Enter your position and target',same:'Same position · no bearing',browseHint:'Drag to pan · pinch / scroll to zoom',placeHint:'Map fixed · tap to place target',lockedHint:'Target locked · unlock to place',invalid:'Enter coordinates within bounds (up to 2 decimals)',noSaved:'No saved positions on this map',loadOrigin:'Set as you',loadTarget:'Set as target',remove:'Delete',undo:'Undo',deleted:'Position deleted',savedDone:'Position saved',storageError:'Browser storage unavailable; this session still works.',storageCorrupt:'Saved data could not be read. Original data preserved.',unlockFirst:'Unlock this position first',outside:'Place the target within the map boundary',loading:'Loading map…',mapError:'Some map images could not load. Please retry.',retry:'Retry',yourX:'Your X',yourY:'Your Y',targetX:'Target X',targetY:'Target Y',saveOrigin:'Save your position',saveTarget:'Save target position',zoomIn:'Zoom in',zoomOut:'Zoom out',fit:'Fit map',close:'Close',mapLabel:'Map: arrow keys to pan, plus/minus to zoom; Enter places a target at the center in placement mode',rangeCircle:'Maximum range',minCircle:'Minimum range',badFields:'Check coordinate inputs' },
 };
 const storageKey = 'mz-wardogs-v1';
-Object.assign(strings.zh,{appTitle:'炮击计算 · 地图标记',swap:'互换自己与目标坐标',swapLocked:'先解锁坐标再互换'});
-Object.assign(strings.en,{appTitle:'Artillery & Map Markers',swap:'Swap your position and target',swapLocked:'Unlock positions before swapping'});
+Object.assign(strings.zh,{appTitle:'炮击计算 · 地图标记 · 导航',swap:'互换自己与目标坐标',swapLocked:'先解锁坐标再互换'});
+Object.assign(strings.en,{appTitle:'Artillery · Map · Nav',swap:'Swap your position and target',swapLocked:'Unlock positions before swapping'});
 Object.assign(strings.zh,{markers:'标记',markerHint:'地图已固定 · 点空白添加，点标记删除',markerAdded:'已添加标记',markerRemoved:'已删除标记',markerOutside:'请在地图边界内放置标记'});
 Object.assign(strings.en,{markers:'Markers',markerHint:'Map fixed · tap to add, tap a marker to delete',markerAdded:'Marker added',markerRemoved:'Marker deleted',markerOutside:'Place markers within the map boundary'});
 Object.assign(strings.zh,{place:'目标',placeOrigin:'自己',outside:'请选择地图边界内的位置',mapLabel:'地图：方向键浏览，加减号缩放；点选或标记时按回车放在中心',placeOriginHint:'地图已固定 · 点选自己位置',inputOnly:'输入或点选',artilleryTitle:'炮击计算',markersTitle:'地图标记',markerHint:'拖动 / 缩放地图 · 点空白添加，点标记删除',help1:'炮击计算：输入自己和目标坐标，或点击地图上方「自己」「目标」后点选位置。点选时地图固定；「浏览」恢复拖动缩放。锁定后需先解锁才能修改、清空或互换坐标。',help3:'地图标记：点击「标记」自动展开地图，选择观察点、危险或集合点，点空白添加，点已有标记删除。标记时仍可拖动、双指或滚轮缩放；拖动不会添加标记。「关闭」收起标记菜单，右上角按钮返回计算。',help4:'坐标、收藏和标记按地图分别保存在当前浏览器。键盘方向键浏览，+/− 缩放；点选或标记时 Enter 放在地图中心。'});
@@ -16,6 +20,13 @@ let lang = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
 let mapId = 'bakurani', weaponId = 'mortar', mode = 'browse', mapOnly = false;
 let perMap = {}, saved = [], savePoint = null, toastTimer, blockedStorage = false;
 let defaultSavedInitialized = false;
+const roadsByMap={bakurani:bakuraniRoads,ozeti:ozetiRoads,zestafona:zestafonaRoads};
+const roadGraphs=Object.fromEntries(Object.entries(roadsByMap).map(([id,roads])=>[id,buildRoadGraph(roads)]));
+let navigation=false, roadRoute=null;
+Object.assign(strings.zh,{navigation:'导航',routeEmpty:'用「自己」「目标」点选或输入起终点',routeUnavailable:'此地图尚无道路数据',routeDisconnected:'起终点吸附的道路尚未连通',routeDistance:'沿路',routeGap:'离路距离',routeNote:'虚线为离路直连；通行待实测',routeFit:'查看路线',routeHelp:'导航：使用自己和目标作为起终点，自动吸附到最近道路。亮线是沿路路线，虚线连接原坐标与道路，不计入沿路距离。三张地图均已录入可辨认道路；底图描线，实际通行待核对。'});
+Object.assign(strings.en,{navigation:'Navigate',routeEmpty:'Set You and Target by tapping or entering coordinates',routeUnavailable:'No road data for this map yet',routeDisconnected:'Snapped roads are not connected',routeDistance:'By road',routeGap:'Off road',routeNote:'Dashed: off-road connectors; access unverified',routeFit:'Show route',routeHelp:'Navigate uses You and Target as endpoints and snaps each to the nearest road. The bright line follows roads; dashed connectors are excluded from road distance. Road data is available for all three maps. Traced from imagery; access needs in-game verification.'});
+Object.assign(strings.zh,{navigation:'路线导航',navigationBack:'返回炮击',quickInput:'快捷输入',bases:'基地',routeStart:'设为起点',routeEnd:'设为终点',routeEmpty:'用快捷输入，或点选自己与目标',routeHelp:'点击地图右下角「路线导航」进入导航界面。「快捷输入」列出当前地图的三家基地和收藏点，可分别设为起点或终点。自己和目标坐标与炮击界面共用。起终点吸附到最近道路，亮线为沿路路线，虚线是未验证可通行性的离路连接，不计入沿路距离。三张地图均已录入可辨认道路；林下小径与车辆通行仍需实测。'});
+Object.assign(strings.en,{navigation:'Nav',navigationBack:'Artillery',quickInput:'Quick input',bases:'Bases',routeStart:'Set start',routeEnd:'Set end',routeEmpty:'Use Quick input, or set You and Target',routeHelp:'Open Nav at the bottom right of the map. Quick input lists the current map’s three bases and saved places; each can be the start or end. Coordinates are shared with Artillery. Endpoints snap to the nearest road. The bright route follows roads; dashed off-road connectors are unverified and excluded from road distance. Road data is available for all three maps; obscured tracks and vehicle access still need in-game checks.'});
 let markers = [], markerType = 'observe';
 const t = key => strings[lang][key];
 const blank = () => ({ origin: { x:'', y:'', locked:false }, target: { x:'', y:'', locked:false } });
@@ -147,6 +158,15 @@ function update() {
   }
   $('weapon-range').textContent = `${weapons[weaponId].min}–${weapons[weaponId].max} m`;
   $('saved-count').textContent = saved.filter(p => p.mapId === mapId).length;
+  roadRoute=navigation&&roadGraphs[mapId]&&origin&&target ? findRoadRoute(roadGraphs[mapId],origin,target) : null;
+  $('navigation').setAttribute('aria-pressed',String(navigation));
+  $('route-panel').hidden=!navigation;
+  $('navigation').querySelector('span').textContent=t(navigation?'navigationBack':'navigation');
+  $('navigation').querySelector('use').setAttribute('href',navigation?'#cannon-icon':'#route-icon');
+  document.body.classList.toggle('navigation-mode',navigation);
+  $('route-fit').disabled=roadRoute?.status!=='ok';
+  $('route-summary').textContent=!roadGraphs[mapId] ? t('routeUnavailable') : roadRoute?.status==='ok' ? `${t('routeDistance')} ${Math.round(roadRoute.distance)} m · ${t('routeGap')} ${Math.round(roadRoute.start.gap)} + ${Math.round(roadRoute.end.gap)} m` : t(roadRoute?.status==='disconnected'?'routeDisconnected':'routeEmpty');
+  $('route-note').hidden=!roadGraphs[mapId];
   updateMode(); draw();
 }
 function updateMode() {
@@ -161,7 +181,6 @@ function updateMode() {
   $('map-panel').classList.toggle('marking',mode === 'marker');
   $('map-panel').classList.toggle('placing',mode === 'place' || mode === 'origin');
   $('map-hint').textContent = t(mode === 'marker' ? 'markerHint' : mode === 'browse' ? 'browseHint' : mode === 'origin' ? 'placeOriginHint' : current().target.locked ? 'lockedHint' : 'placeHint');
-  for (const id of ['zoom-in','zoom-out','fit']) $(id).disabled = mode === 'place' || mode === 'origin';
   for (const button of $('marker-picker').children) button.setAttribute('aria-pressed',String(button.dataset.type === markerType));
 }
 function translate() {
@@ -171,7 +190,7 @@ function translate() {
   $('language').textContent = lang === 'zh' ? 'EN' : '中文';
   $('language').lang = lang === 'zh' ? 'en' : 'zh-CN';
   $('language').setAttribute('aria-label',lang === 'zh' ? 'Switch to English' : '切换到中文');
-  for (const [id,key] of Object.entries({'swap-coordinates':'swap','origin-x':'yourX','origin-y':'yourY','target-x':'targetX','target-y':'targetY','origin-save':'saveOrigin','target-save':'saveTarget','zoom-in':'zoomIn','zoom-out':'zoomOut','fit':'fit','map-canvas':'mapLabel','map':'map','weapon':'weapon','info-open':'about'})) $(id).setAttribute('aria-label',t(key));
+  for (const [id,key] of Object.entries({'swap-coordinates':'swap','origin-x':'yourX','origin-y':'yourY','target-x':'targetX','target-y':'targetY','origin-save':'saveOrigin','target-save':'saveTarget','map-canvas':'mapLabel','map':'map','weapon':'weapon','info-open':'about'})) $(id).setAttribute('aria-label',t(key));
   document.querySelectorAll('.close-dialog').forEach(el => el.setAttribute('aria-label',t('close')));
   $('expand').querySelector('span').textContent = t(mapOnly ? 'collapse' : 'expand');
   $('expand').setAttribute('aria-label',t(mapOnly ? 'collapse' : 'expand'));
@@ -184,7 +203,7 @@ function translate() {
     icon.append(svg('path',{d:config.path}));button.append(icon,document.createTextNode(config[lang]));
     button.onclick=()=>{markerType=type;updateMode();};$('marker-picker').append(button);
   }
-  update(); if ($('saved-dialog').open) renderSaved();
+  update(); if ($('saved-dialog').open) renderSaved();if($('quick-dialog').open)renderQuick();
 }
 
 // ponytail: native SVG + Pointer Events, no mapping framework or build step.
@@ -306,7 +325,23 @@ function renderMap() {
     overlays.append(g);
   }
   const origin=point('origin'),target=point('target'),weapon=weapons[weaponId];
-  if(origin){
+  if(navigation&&roadsByMap[mapId]) {
+    const path=points=>points.map(p=>`${p.x},${-p.y}`).join(' ');
+    const attrs={fill:'none','vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':'round','pointer-events':'none'};
+    const network=svg('g',{id:'road-network','aria-label':lang==='zh'?'道路描线':'Traced roads'});
+    for(const road of roadsByMap[mapId])network.append(svg('polyline',{...attrs,'data-road':road.id,points:path(road.points.map(([x,y])=>({x,y}))),stroke:'#86bdcd','stroke-width':2,'stroke-opacity':.7}));
+    overlays.append(network);
+    if(roadRoute?.status==='ok') {
+      const points=path(roadRoute.path);
+      overlays.append(svg('polyline',{...attrs,points,stroke:'#102228','stroke-width':7}));
+      overlays.append(svg('polyline',{...attrs,id:'navigation-route',points,stroke:'#70e6ff','stroke-width':4}));
+    }
+    if(roadRoute?.start)for(const [p,snap] of [[origin,roadRoute.start],[target,roadRoute.end]]) {
+      overlays.append(svg('polyline',{...attrs,class:'road-connector',points:path([p,snap]),stroke:'#f0d89a','stroke-width':2,'stroke-dasharray':'4 5'}));
+      overlays.append(svg('circle',{cx:snap.x,cy:-snap.y,r:4/s,fill:'#70e6ff',stroke:'#102228','stroke-width':1.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    }
+  }
+  if(origin&&!navigation){
     const ring = [weapon.max,weapon.min].map(m => {
       const r=m/100;
       return `M${-r} 0a${r} ${r} 0 1 0 ${2*r} 0a${r} ${r} 0 1 0 ${-2*r} 0Z`;
@@ -315,7 +350,7 @@ function renderMap() {
     overlays.append(svg('circle',{cx:origin.x,cy:-origin.y,r:weapon.max/100,fill:'none',stroke:'#bed99c','stroke-opacity':'.85','stroke-width':1.5,'vector-effect':'non-scaling-stroke','aria-label':`${t('rangeCircle')} ${weapon.max} m`}));
     overlays.append(svg('circle',{cx:origin.x,cy:-origin.y,r:weapon.min/100,fill:'none',stroke:'#f0bb9a','stroke-dasharray':'5 5','stroke-width':1,'vector-effect':'non-scaling-stroke','aria-label':`${t('minCircle')} ${weapon.min} m`}));
   }
-  if(origin&&target) overlays.append(svg('line',{x1:origin.x,y1:-origin.y,x2:target.x,y2:-target.y,stroke:'#f0e8ce','stroke-width':1.5,'stroke-dasharray':'6 5','vector-effect':'non-scaling-stroke'}));
+  if(origin&&target&&!navigation) overlays.append(svg('line',{x1:origin.x,y1:-origin.y,x2:target.x,y2:-target.y,stroke:'#f0e8ce','stroke-width':1.5,'stroke-dasharray':'6 5','vector-effect':'non-scaling-stroke'}));
   for(const [number,tx,ty] of towers[mapId]) {
     const label=lang==='zh'?`${number}号塔`:`Tower ${number}`;
     const outside=outsideControlZone(mapId,tx,ty),color=outside?'#89918a':'#e8d79b';
@@ -406,10 +441,11 @@ canvas.addEventListener('pointercancel',event=>finishPointer(event,true));
 canvas.addEventListener('lostpointercapture',event=>finishPointer(event,true));
 canvas.addEventListener('wheel',event=>{event.preventDefault();const p=localPointer(event);zoom(Math.exp(-event.deltaY*.002),p.x,p.y);},{passive:false});
 canvas.addEventListener('keydown',event=>{
-  if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','+','=','-','Enter'].includes(event.key))return;
+  if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','+','=','-','Enter','Home'].includes(event.key))return;
   event.preventDefault();
   if(event.key==='Enter'){if(mode!=='browse')placeAt({x:camera.x,y:camera.y});return;}
   if(mode==='place'||mode==='origin')return;
+  if(event.key==='Home')return fit();
   if(['+','='].includes(event.key))return zoom(1.5);
   if(event.key==='-')return zoom(1/1.5);
   camera.x+=({'ArrowLeft':-60,'ArrowRight':60}[event.key]||0)/camera.scale;
@@ -445,6 +481,26 @@ function renderSaved() {
     actions.append(remove);row.append(name,coords,actions);list.append(row);
   }
 }
+function renderQuick() {
+  $('quick-map').textContent=maps[mapId].name;
+  function row(p,name) {
+    const article=document.createElement('article');article.className='quick-item';
+    const label=document.createElement('div'),strong=document.createElement('strong'),coords=document.createElement('small');
+    strong.textContent=name;coords.textContent=`X ${p.x.toFixed(2)} · Y ${p.y.toFixed(2)}`;label.append(strong,coords);article.append(label);
+    for(const key of ['origin','target']) {
+      const button=document.createElement('button');button.textContent=t(key==='origin'?'routeStart':'routeEnd');button.disabled=current()[key].locked;
+      button.onclick=()=>{setPoint(key,p);$('quick-dialog').close();};article.append(button);
+    }
+    return article;
+  }
+  // Polygon centers provide approximate base positions where no spawn point is available.
+  const bases=spawnAreas[mapId].map(area=>(spawnPoints[mapId]||[]).find(p=>p.faction===area.name)||{faction:area.name,x:area.points.reduce((s,p)=>s+p[0],0)/area.points.length,y:area.points.reduce((s,p)=>s+p[1],0)/area.points.length});
+  const colors={LONESTAR:{zh:'蓝色',en:'Blue'},VALKYRA:{zh:'红色',en:'Red'},MANTICORE:{zh:'绿色',en:'Green'}};
+  $('quick-bases').replaceChildren(...bases.map(p=>row(p,`${p.faction} (${colors[p.faction][lang]})`)));
+  $('quick-saved').replaceChildren(...saved.filter(p=>p.mapId===mapId).map(p=>row(p,defaultSavedPositions.find(item=>item.id===p.id)?.[lang]||p.name)));
+  if(!$('quick-saved').children.length)$('quick-saved').textContent=t('noSaved');
+}
+$('quick-open').onclick=()=>{renderQuick();$('quick-dialog').showModal();};
 function openSaved(key=null){
   savePoint=key?point(key):null;$('save-form').hidden=!savePoint;$('saved-name').value='';renderSaved();$('saved-dialog').showModal();
   if(savePoint)$('saved-name').focus();
@@ -465,6 +521,18 @@ $('swap-coordinates').onclick=()=>{
   writeInputs();update();persist();
 };
 $('browse').onclick=()=>{mode='browse';pointers.clear();gesture=null;updateMode();draw();};
+$('navigation').onclick=()=>{navigation=!navigation;mode='browse';mapOnly=false;document.body.classList.remove('map-only');$('expand').setAttribute('aria-pressed','false');pointers.clear();gesture=null;translate();};
+$('route-fit').onclick=()=>{
+  if(roadRoute?.status!=='ok')return;
+  mode='browse';pointers.clear();gesture=null;
+  const points=[point('origin'),point('target'),...roadRoute.path];
+  const xs=points.map(p=>p.x),ys=points.map(p=>p.y);
+  const left=Math.min(...xs),right=Math.max(...xs),bottom=Math.min(...ys),top=Math.max(...ys);
+  camera.x=(left+right)/2;camera.y=(bottom+top)/2;
+  const availableHeight=Math.max(60,camera.height-140);
+  camera.scale=Math.max(camera.fit,Math.min(camera.fit*64,(camera.width-80)/Math.max(1,right-left),availableHeight/Math.max(1,top-bottom)));
+  camera.y+=45/camera.scale;clampCamera();updateMode();draw();
+};
 $('place').onclick=()=>{if(current().target.locked)return;mode='place';pointers.clear();gesture=null;updateMode();draw();};
 $('place-origin').onclick=()=>{if(current().origin.locked)return;mode='origin';pointers.clear();gesture=null;updateMode();draw();};
 $('marker-mode').onclick=()=>{
@@ -472,7 +540,6 @@ $('marker-mode').onclick=()=>{
   if(mode==='marker'){mapOnly=true;document.body.classList.add('map-only');$('expand').setAttribute('aria-pressed','true');}
   translate();
 };
-$('zoom-in').onclick=()=>zoom(1.5);$('zoom-out').onclick=()=>zoom(1/1.5);$('fit').onclick=fit;
 $('expand').onclick=()=>{
   mapOnly=!mapOnly;mode='browse';document.body.classList.toggle('map-only',mapOnly);$('expand').setAttribute('aria-pressed',String(mapOnly));translate();
 };
@@ -487,6 +554,12 @@ $('save-form').onsubmit=event=>{
   if(!name||!savePoint)return;
   saved.push({id:Array.from(crypto.getRandomValues(new Uint32Array(4)),n=>n.toString(16)).join('-'),mapId,name,...savePoint});persist();$('save-form').hidden=true;savePoint=null;renderSaved();update();toast(t('savedDone'));
 };
+// Correct the old built-in church preset without changing custom coordinates.
+for (const p of saved) if (p.id === 'preset:ozeti:hilltop-church' && p.x === 101.36 && p.y === 63.21) {
+  const church = landmarks.find(p => p.id === 'hilltop-church');
+  p.x = church.x; p.y = church.y;
+  persist();
+}
 if (!defaultSavedInitialized && !blockedStorage) {
   for (const p of defaultSavedPositions) {
     if (!saved.some(item=>item.id===p.id || (item.mapId===p.mapId && item.x===p.x && item.y===p.y)))

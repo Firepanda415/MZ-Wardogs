@@ -70,7 +70,7 @@ for(const patch of [{type:'<script>'},{type:'constructor'},{mapId:'missing'},{id
 assert.ok(!validMarker(null));
 console.log('Passed: calculations, bounds, tower/spawn data and saved marker validation.');
 
-assert.deepEqual(landmarks.map(({mapId,x,y})=>({mapId,x,y})),[{mapId:"bakurani",x:84.53,y:71.43},{mapId:"bakurani",x:78.72,y:71.74},{mapId:"ozeti",x:101.36,y:63.21}]);
+assert.deepEqual(landmarks.map(({mapId,x,y})=>({mapId,x,y})),[{mapId:"bakurani",x:84.53,y:71.43},{mapId:"bakurani",x:78.72,y:71.74},{mapId:"ozeti",x:101.19,y:63.00}]);
 for(const p of landmarks) assert.ok(validPoint(p,maps[p.mapId]));
 
 assert.equal(controlZones.bakurani.length,1);
@@ -80,8 +80,6 @@ for(const [x,y] of [[82.31,66.90],[82.15,76.90],[87.37,71.95]]) {
   const z=controlZones.bakurani[0];
   assert.ok(Math.abs(Math.hypot(x-z.x,y-z.y)-z.r)<.03);
 }
-assert.ok(Math.abs(spawnPoints.bakurani[0].x-((-761839+1632000)/1632000*163.84-.03))<1e-6);
-assert.ok(Math.abs(spawnPoints.bakurani[0].y-((732151-408000)/1632000*163.84-.01))<1e-6);
 console.log('Passed: Control Zone and Spawn point registration.');
 
 assert.equal(controlZones.bakurani[0].id,'lumberyard');
@@ -110,10 +108,12 @@ for(const [x,y] of [[92.14,62.42],[97.71,56.89],[97.78,56.92]]) {
 }
 
 // Each measured spawn icon must sit inside its own convex four-corner area.
-for(const p of spawnPoints.ozeti) {
-  const a=spawnAreas.ozeti.find(a=>a.name===p.faction);
+for(const mapId of Object.keys(maps)) {
+assert.equal(spawnPoints[mapId].length,3);
+for(const p of spawnPoints[mapId]) {
+  const a=spawnAreas[mapId].find(a=>a.name===p.faction);
   const signs=a.points.map(([x,y],i)=>{const [u,v]=a.points[(i+1)%4];return Math.sign((u-x)*(p.y-y)-(v-y)*(p.x-x));});
   assert.ok(signs.every(s=>s===signs[0]));
-  assert.ok(validPoint(p,maps.ozeti));
+  assert.ok(validPoint(p,maps[mapId]));
 }
-assert.equal(spawnPoints.ozeti.length,3);
+}

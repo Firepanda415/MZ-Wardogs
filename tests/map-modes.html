@@ -17,13 +17,16 @@ try {
   $('place-origin').click();key('Enter');await draw();
   check($('origin-x').value!=='' && $('origin-y').value!=='','You mode places your coordinates');
   check([$('target-x').value,$('target-y').value].join(',')===target,'Placing yourself must preserve target');
-  const fixedCanvas=$('map-canvas'), fixedView=fixedCanvas.getAttribute('viewBox');
-  check(['zoom-in','zoom-out','fit'].every(id=>$(id).disabled),'You placement disables all map controls');
+  const fixedCanvas=$('map-canvas');
+  // Result text can resize the map; placement must preserve its center and scale.
+  const cameraState=()=>{const [x,y,w,h]=fixedCanvas.getAttribute('viewBox').split(' ').map(Number);return [x+w/2,y+h/2,fixedCanvas.clientWidth/w];};
+  const fixedView=cameraState();
+  check(!doc.querySelector('#zoom-in,#zoom-out,#fit'),'Navigation replaces zoom buttons');
   key('ArrowRight');key('+');fixedCanvas.dispatchEvent(new win.WheelEvent('wheel',{deltaY:-100,bubbles:true}));
   const originalCapture=fixedCanvas.setPointerCapture;fixedCanvas.setPointerCapture=()=>{};
   for(const [type,x] of [['pointerdown',100],['pointermove',180],['pointerup',180]]) fixedCanvas.dispatchEvent(new win.PointerEvent(type,{pointerId:1,button:0,clientX:x,clientY:300,bubbles:true}));
   fixedCanvas.setPointerCapture=originalCapture;await draw();
-  check(fixedCanvas.getAttribute('viewBox')===fixedView,'You placement must block drag, wheel and keyboard pan/zoom');
+  check(cameraState().every((n,i)=>Math.abs(n-fixedView[i])<1e-7),'You placement must block drag, wheel and keyboard pan/zoom');
   check($('place').getBoundingClientRect().right<=$('place-origin').getBoundingClientRect().left+0.01,'Target must be left of You');
   const origin=$('origin-x').value;
   $('origin-lock').click();check($('place-origin').disabled,'Your lock disables map placement');
@@ -31,9 +34,9 @@ try {
   $('marker-mode').click();await draw();
   check(doc.body.classList.contains('map-only') && !$('marker-picker').hidden,'Markers expand map and show choices');
   check(['关闭','Close'].includes($('marker-mode').textContent.trim()),'Open marker menu must say Close');
-  check(!$('zoom-in').disabled,'Marker mode allows zoom');
+  check(!$('zoom-in'),'Zoom buttons have been replaced by Navigation');
   const canvas=$('map-canvas'), view=canvas.getAttribute('viewBox');
-  $('zoom-in').click();await draw();check(canvas.getAttribute('viewBox')!==view,'Zoom must work in marker mode');
+  canvas.dispatchEvent(new KeyboardEvent('keydown',{key:'+'}));await draw();check(canvas.getAttribute('viewBox')!==view,'Zoom must work in marker mode');
   const zoomed=canvas.getAttribute('viewBox');key('ArrowRight');await draw();check(canvas.getAttribute('viewBox')!==zoomed,'Keyboard pan must work');
   const count=()=>doc.querySelectorAll('[data-user-marker]').length;
   const before=count();

@@ -1,4 +1,4 @@
-// Calibration and weapon ranges: apollyon-sys/wardogs-calculator, 2026-09-14.
+// Map bounds, tile calibration and SPH-2 ranges: apollyon-sys/wardogs-calculator.
 export const maps = {
   bakurani: { name: 'Bakurani', minX: 23.35, maxX: 133.60, minY: 19.34, maxY: 129.65 },
   ozeti: { name: 'Ozeti', minX: 57.58, maxX: 143.07, minY: 21.81, maxY: 99.56 },
@@ -11,12 +11,12 @@ export const towers = {
   ozeti: [[1,95.81,62.87],[2,100.34,59.25],[3,104.51,63.71],[4,100.64,67.66]],
   zestafona: [[1,68.58,104.15],[2,72.89,105.04],[3,70.15,100.18]],
 };
-// Landmark centers measured from user gameplay screenshots; display names chosen locally.
+// Landmark centers measured from gameplay screenshots; Sunflower Church name from community references.
 export const landmarks = [
   {id:'sunflower-church',mapId:'bakurani',x:84.53,y:71.43,zh:'向日葵教堂',en:'Sunflower Church'},
   // Center of four user-supplied in-game reference points, 2026-09-14.
   {id:'factory',mapId:'bakurani',x:78.72,y:71.74,zh:'货柜工厂',en:'Container&Factory'},
-  {id:'hilltop-church',mapId:'ozeti',x:101.36,y:63.21,zh:'山顶教堂',en:'Hilltop Church'},
+  {id:'hilltop-church',mapId:'ozeti',x:101.19,y:63.00,zh:'山顶教堂',en:'Hilltop Church'},
 ];
 // Observed match circles measured from screenshots; not a guarantee for every match.
 export const controlZones = {bakurani: [
@@ -28,20 +28,24 @@ export const controlZones = {bakurani: [
   // Zestafona terrain, in-game screenshots, 2026-09-14: estimated center and 500 m radius.
   {id:'game-observed',x:69.92,y:100.35,r:5},
 ]};
-// Ozeti: own screenshot measurements. Other maps retain prior spawn data (see README).
+// All spawn coordinates: gameplay screenshot measurements. See README for methods.
 export const spawnPoints = {ozeti: [
   {id:'manticore',faction:'MANTICORE',x:68.26,y:88.07},
   {id:'lonestar',faction:'LONESTAR',x:83.72,y:30.70},
   {id:'valkyra',faction:'VALKYRA',x:138.18,y:67.27},
 ], bakurani: [
-  {id:'alpha',faction:'LONESTAR',x:87.327340,y:32.532218},
-  {id:'bravo',faction:'VALKYRA',x:118.691958,y:70.896478},
-  {id:'charlie-1',faction:'MANTICORE',x:39.471603,y:77.674957},
+  {id:'alpha',faction:'LONESTAR',x:87.34,y:32.54},
+  {id:'bravo',faction:'VALKYRA',x:118.60,y:71.00},
+  {id:'charlie-1',faction:'MANTICORE',x:39.37,y:77.76},
+], zestafona: [
+  {id:'manticore',faction:'MANTICORE',x:105.35,y:115.00},
+  {id:'lonestar',faction:'LONESTAR',x:67.84,y:65.83},
+  {id:'valkyra',faction:'VALKYRA',x:38.51,y:125.25},
 ]};
 export const spawnAreas = {
-  bakurani: [{"name":"VALKYRA","color":"#d86666","points":[[117.5,73.76],[121.22,70.71],[118.18,66.99],[114.45,70.04]]},{"name":"MANTICORE","color":"#82c596","points":[[38.68,79.88],[43.39,78.85],[42.35,74.15],[37.65,75.18]]},{"name":"LONESTAR","color":"#5fa8d3","points":[[83.08,35.27],[87.72,36.51],[88.97,31.86],[84.32,30.62]]}],
+  bakurani: [{"name":"VALKYRA","color":"#d86666","points":[[117.41,73.86],[121.07,70.79],[118.06,67.11],[114.37,70.12]]},{"name":"MANTICORE","color":"#82c596","points":[[38.59,79.94],[43.24,78.89],[42.26,74.21],[37.61,75.26]]},{"name":"LONESTAR","color":"#5fa8d3","points":[[83.06,35.27],[87.69,36.52],[88.93,31.89],[84.28,30.63]]}],
   ozeti: [{"name":"VALKYRA","color":"#d86666","points":[[133.93,68.56],[138.53,69.96],[139.94,65.37],[135.35,63.97]]},{"name":"MANTICORE","color":"#82c596","points":[[69.06,90.89],[72.96,88.09],[70.13,84.25],[66.26,86.98]]},{"name":"LONESTAR","color":"#5fa8d3","points":[[81.48,34.06],[86.29,34.06],[86.27,29.25],[81.46,29.25]]}],
-  zestafona: [{"name":"MANTICORE","color":"#82c596","points":[[103.3011,111.7061],[101.9084,116.31],[106.5123,117.6862],[107.8886,113.0987]]},{"name":"VALKYRA","color":"#d86666","points":[[40.2718,121.8805],[35.7007,123.3551],[37.175296,127.9262],[41.7464,126.4517]]},{"name":"LONESTAR","color":"#5fa8d3","points":[[65.1264,64.8151],[66.306,69.4681],[70.9591,68.2721],[69.7794,63.619]]}],
+  zestafona: [{"name":"MANTICORE","color":"#82c596","points":[[103.26,111.73],[101.88,116.31],[106.45,117.69],[107.84,113.11]]},{"name":"VALKYRA","color":"#d86666","points":[[40.21,121.93],[35.64,123.40],[37.10,127.95],[41.68,126.48]]},{"name":"LONESTAR","color":"#5fa8d3","points":[[65.08,64.87],[66.24,69.47],[70.89,68.29],[69.71,63.68]]}],
 };
 export const weapons = {
   // User-confirmed adjustment stop in 20260915002406_1.jpg: center ~877 MIL, ~120 m.

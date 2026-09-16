@@ -23,7 +23,7 @@ try {
   tile.dispatchEvent(new win.Event('load'));
   check(notice.hidden, 'Successful loading must clear the failure');
   tile.dispatchEvent(new win.Event('error'));
-  for (let i = 0; i < 4; i++) doc.querySelector('#zoom-in').click();
+  for (let i = 0; i < 4; i++) doc.querySelector('#map-canvas').dispatchEvent(new KeyboardEvent('keydown',{key:'+'}));
   await until(() => !tile.isConnected && notice.hidden);
   tile.dispatchEvent(new win.Event('error'));
   check(notice.hidden, 'A late error from a removed tile must be ignored');

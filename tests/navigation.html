@@ -1,0 +1,87 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Road navigation check</title>
+<pre id="result">Running…</pre>
+<iframe id="app" title="Navigation under test" width="1100" height="800"></iframe>
+<script type="module">
+const frame=document.querySelector('#app'),result=document.querySelector('#result');
+const key='mz-wardogs-v1',backup=localStorage.getItem(key);
+const check=(ok,message)=>{if(!ok)throw new Error(message);};
+const render=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+try {
+  localStorage.setItem(key,JSON.stringify({version:1,lang:'zh',mapId:'bakurani',weaponId:'mortar',saved:[{id:'preset:ozeti:hilltop-church',mapId:'ozeti',name:'山顶教堂',x:101.36,y:63.21},{id:'custom-church',mapId:'ozeti',name:'Custom',x:101.36,y:63.21}],perMap:{}}));
+  await new Promise(resolve=>{frame.onload=resolve;frame.src='../index.html';});
+  const d=frame.contentDocument,$=id=>d.getElementById(id);
+  const corrected=JSON.parse(localStorage.getItem(key)).saved;
+  check(corrected.find(p=>p.id==='preset:ozeti:hilltop-church').y===63,'Built-in church preset corrected');
+  check(corrected.find(p=>p.id==='custom-church').y===63.21,'Custom coordinates preserved');
+  const select=(id,value)=>{$(id).value=value;$(id).dispatchEvent(new Event('change',{bubbles:true}));};
+  check($('route-panel').hidden&&!$('road-network'),'Navigation is opt-in');
+  $('navigation').click();await render();
+  $('quick-open').click();
+  check($('quick-bases').textContent.includes('LONESTAR (蓝色)')&&$('quick-bases').textContent.includes('VALKYRA (红色)')&&$('quick-bases').textContent.includes('MANTICORE (绿色)'),'Base colors shown');
+  $('quick-dialog').close();
+  check(!$('route-panel').hidden&&$('road-network').children.length>=25,'Road network is visible');
+  const quick=(section,name,index)=>{
+    $('quick-open').click();
+    const rows=[...$(section).children],row=rows.find(r=>r.querySelector('strong')?.textContent===name||r.querySelector('strong')?.textContent.startsWith(name+' ('));
+    check(row,`Missing quick input: ${name}`);row.querySelectorAll('button')[index].click();
+  };
+  check(getComputedStyle(d.querySelector('.readout')).display==='none','Navigation hides artillery readout');
+  check(!d.querySelector('#zoom-in,#zoom-out,#fit'),'Old zoom buttons removed');
+  quick('quick-saved','向日葵教堂',1);await render();
+  for(const faction of ['LONESTAR','VALKYRA','MANTICORE']) {
+    quick('quick-bases',faction,0);await render();
+    check($('navigation-route')&&d.querySelectorAll('.road-connector').length===2,`${faction} has a road route and two connectors`);
+    check($('route-summary').textContent.includes('沿路'),'Road distance displayed');
+  }
+  const before=$('route-summary').textContent.match(/沿路 (\d+)/)[1];
+  $('swap-coordinates').click();
+  check($('route-summary').textContent.match(/沿路 (\d+)/)[1]===before,'Swap keeps road distance');
+  $('origin-lock').click();$('quick-open').click();
+  check([...d.querySelectorAll('.quick-item')].every(r=>r.querySelectorAll('button')[0].disabled&&!r.querySelectorAll('button')[1].disabled),'Quick input respects independent locks');
+  $('quick-dialog').close();$('origin-lock').click();
+  quick('quick-bases','LONESTAR',1);await render();
+  check($('target-x').value==='87.34','Measured base can also be the destination');
+  quick('quick-saved','向日葵教堂',0);await render();
+  check($('origin-x').value==='84.53','Favorite can also be the start');
+  $('route-fit').click();await render();
+  check($('browse').getAttribute('aria-pressed')==='true','Fit restores map browsing');
+  const desktop=$('route-panel').getBoundingClientRect(),map=$('map-panel').getBoundingClientRect();
+  check(desktop.left>=0&&desktop.right<=d.documentElement.clientWidth&&desktop.bottom<=map.top,'Compact route readout is above map');
+  frame.width=390;frame.height=844;await render();
+  const panel=$('route-panel').getBoundingClientRect(),canvas=$('map-panel').getBoundingClientRect();
+  check(d.documentElement.scrollWidth<=390,'No mobile horizontal overflow');
+  check(panel.right<=canvas.right+1&&panel.bottom<=canvas.top+1,'Mobile route readout is above map');
+  const selectBox=d.querySelector('.selection').getBoundingClientRect();
+  check(selectBox.right<panel.left&&selectBox.top<panel.bottom,'Navigation controls and results are side by side');
+  const navText=$('navigation').querySelector('span');
+  check(navText.getBoundingClientRect().height>parseFloat(getComputedStyle(navText).lineHeight)*1.5,'Chinese return button is two lines');
+  $('language').click();check($('route-summary').textContent.includes('By road'),'Navigation translates');
+  frame.width=320;await render();
+  for(let i=0;i<2;i++) {
+    const title=d.querySelector('h1').getBoundingClientRect(),actions=d.querySelector('.header-actions').getBoundingClientRect();
+    check(title.right<=actions.left&&d.documentElement.scrollWidth<=320,'Full title fits 320px without overlapping buttons');
+    $('quick-open').click();
+    const dialog=$('quick-dialog').getBoundingClientRect();check(dialog.width<=320,'Quick input fits mobile');
+    $('quick-dialog').close();$('language').click();await render();
+  }
+  for(const mapId of ['ozeti','zestafona']) {
+    select('map',mapId);await render();
+    check($('road-network')&&!$('navigation-route'),`${mapId} has its own network and independent coordinates`);
+    quick('quick-bases','VALKYRA',1);await render();
+    for(const faction of ['LONESTAR','MANTICORE']) {
+      quick('quick-bases',faction,0);await render();
+      check($('navigation-route')&&$('route-summary').textContent.includes('By road'),`${mapId} ${faction} has a route`);
+    }
+  }
+  select('map','bakurani');await render();check($('navigation-route'),'Switching back restores route');
+  $('target-clear').click();await render();check(!$('navigation-route')&&$('route-fit').disabled,'Clearing a coordinate clears route');
+  const originBefore=$('origin-x').value;
+  $('navigation').click();await render();check($('route-panel').hidden&&!$('road-network')&&$('range-fill'),'Closing navigation restores range overlay');
+  check($('navigation').textContent.trim()==='Nav','English navigation label is compact');
+  check(getComputedStyle(d.querySelector('.readout')).display!=='none'&&$('origin-x').value===originBefore,'Artillery restores shared coordinates');
+  result.textContent='PASS: all three maps and their bases, favorites as either endpoint, nearest-road connectors, swap, independent locks, fit, 320px bilingual titles, mobile quick input, map switching, clearing, shared artillery coordinates.';
+}catch(error){result.textContent=`FAIL: ${error.message}`;throw error;}
+finally{if(backup===null)localStorage.removeItem(key);else localStorage.setItem(key,backup);}
+</script>

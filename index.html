@@ -6,16 +6,16 @@
   <meta name="theme-color" content="#121713">
   <meta name="referrer" content="no-referrer">
   <meta name="description" content="A simple, mobile-first WARDOGS map and range calculator. 简洁的 WARDOGS 地图、距离与方位工具。">
-  <title>炮击计算 · 地图标记 | WARDOGS</title>
+  <title>炮击计算 · 地图标记 · 导航 | WARDOGS</title>
   <link rel="canonical" href="https://mqzh.science/wdtool/">
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=sight-text-11">
-  <script type="module" src="./app.js?v=zone-favorites-1"></script>
+  <link rel="stylesheet" href="./style.css?v=roads-7">
+  <script type="module" src="./app.js?v=roads-15"></script>
 </head>
 <body>
 <main id="app">
   <header class="topbar">
-    <h1><span class="brand-mark">MZ</span><span data-i18n="appTitle">炮击计算 · 地图标记</span></h1>
+    <h1><span class="brand-mark">MZ</span><span data-i18n="appTitle">炮击计算 · 地图标记 · 导航</span></h1>
     <div class="header-actions">
       <button id="saved-open"><svg class="icon"><use href="#bookmark"/></svg><span data-i18n="saved">收藏</span><span id="saved-count" class="count">0</span></button>
       <button id="language" lang="en" aria-label="Switch to English">EN</button>
@@ -29,11 +29,18 @@
     <div class="metric bearing-metric"><span class="eyebrow" data-i18n="bearing">罗盘方位</span><div class="metric-value"><output id="bearing">—</output><span id="direction" class="direction">—</span></div><div id="compass" class="compass" aria-hidden="true"></div></div>
   </section>
 
+  <div class="map-header">
   <section class="selection" aria-label="地图与武器 / Map and weapon">
     <label class="map-picker"><span class="eyebrow" data-i18n="map">地图</span><select id="map" aria-label="地图 / Map"><option value="bakurani">Bakurani</option><option value="ozeti">Ozeti</option><option value="zestafona">Zestafona</option></select></label>
     <label class="weapon-picker"><span class="eyebrow" data-i18n="weapon">武器</span><select id="weapon" aria-label="武器 / Weapon"></select></label>
     <div class="weapon-range"><span class="eyebrow" data-i18n="range">射程</span><strong id="weapon-range">120–684 m</strong></div>
+    <button id="quick-open" class="navigation-only" data-i18n="quickInput">快捷输入</button>
   </section>
+  <section id="route-panel" class="route-panel" aria-label="路线 / Route" hidden>
+    <div><output id="route-summary" role="status"></output><small id="route-note" data-i18n="routeNote">虚线为离路直连；通行待实测</small></div>
+    <button id="route-fit" data-i18n="routeFit">查看路线</button>
+  </section>
+  </div>
 
   <section id="map-panel" class="map-panel">
     <svg id="map-canvas" xmlns="http://www.w3.org/2000/svg" tabindex="0" role="application" aria-label="地图：方向键浏览，加减号缩放；放置模式下按回车选择中心点" aria-describedby="map-hint">
@@ -50,15 +57,14 @@
         <button id="marker-mode" aria-pressed="false"><svg class="icon"><use href="#marker-flag"/></svg><span data-i18n="markers">标记</span></button>
       </div>
       <div id="marker-picker" class="marker-picker" role="group" aria-label="标记图标 / Marker icons" hidden></div>
+
       </div>
       <button id="expand" class="map-button" aria-pressed="false"><svg class="icon"><use href="#expand-icon"/></svg><span data-i18n="expand">展开地图</span></button>
     </div>
     <span class="north" aria-hidden="true">N<span>↑</span></span>
     <div id="map-notice" class="map-notice" role="status" hidden></div>
-    <div class="zoom-controls">
-      <button id="zoom-in" class="map-button icon-button" aria-label="放大 / Zoom in">+</button>
-      <button id="zoom-out" class="map-button icon-button" aria-label="缩小 / Zoom out">−</button>
-      <button id="fit" class="map-button icon-button" aria-label="全图 / Fit map"><svg class="icon"><use href="#expand-icon"/></svg></button>
+    <div class="navigation-control">
+      <button id="navigation" class="map-button" aria-pressed="false" aria-controls="route-panel"><svg class="icon" aria-hidden="true"><use href="#route-icon"/></svg><span>路线导航</span></button>
     </div>
     <div class="map-bottom"><span id="scale-bar"></span><span id="map-hint">拖动浏览 · 双指缩放</span></div>
   </section>
@@ -91,17 +97,27 @@
   <div class="dialog-heading"><h2 id="info-title" data-i18n="about">使用说明</h2><button class="close-dialog icon-button" aria-label="关闭 / Close">×</button></div>
   <h3 class="help-mode-title"><span class="brand-mark" aria-hidden="true">MZ</span><span data-i18n="artilleryTitle">炮击计算</span></h3>
   <p data-i18n="help1">炮击计算：输入自己和目标坐标，或点击地图上方「自己」「目标」后点选位置。点选时地图固定；「浏览」恢复拖动缩放。锁定后需先解锁才能修改、清空或互换坐标。</p>
-  <p data-i18n="help2">实线圈是最大射程，虚线圈内是过近区域。距离是平面距离，射程数据为社区参考值。</p>
+  <p data-i18n="help2">实线圈是最大射程，虚线圈内是过近区域。距离是平面距离；L81 射程来自本项目实测，SPH-2 为社区参考值。</p>
   <h3 class="help-mode-title"><span class="brand-mark" aria-hidden="true">MZ</span><span data-i18n="markersTitle">地图标记</span></h3>
   <p data-i18n="help3">地图标记：点击「标记」自动展开地图，选择观察点、危险或集合点，点空白添加，点已有标记删除。标记时仍可拖动、双指或滚轮缩放；拖动不会添加标记。「关闭」收起标记菜单，右上角按钮返回计算。</p>
   <p data-i18n="help4">坐标、收藏和标记按地图分别保存在当前浏览器。键盘方向键浏览，+/− 缩放；点选或标记时 Enter 放在地图中心。</p>
+  <h3 data-i18n="navigation">导航</h3>
+  <p data-i18n="routeHelp"></p>
   <p class="small muted"><span data-i18n="attribution">地图及射程参考</span> <a href="https://github.com/apollyon-sys/wardogs-calculator" target="_blank" rel="noreferrer">Apollyon / wardogs-calculator</a> · 2026-09-14</p>
   <p class="small muted" data-i18n="unofficial">非官方玩家工具。游戏地图与商标归各自权利人所有。</p>
   <p class="small muted"><a href="./THIRD_PARTY_NOTICES.md">素材来源与许可 / Credits &amp; licenses</a></p>
 </dialog>
+<dialog id="quick-dialog" aria-labelledby="quick-title">
+  <div class="dialog-heading"><h2 id="quick-title" data-i18n="quickInput">快捷输入</h2><button class="close-dialog icon-button" aria-label="关闭 / Close">×</button></div>
+  <p id="quick-map" class="muted"></p>
+  <h3 class="quick-section" data-i18n="bases">基地</h3><div id="quick-bases"></div>
+  <h3 class="quick-section" data-i18n="saved">收藏</h3><div id="quick-saved"></div>
+</dialog>
 <div id="toast" role="status" hidden></div>
 <noscript>此工具需要启用 JavaScript。 JavaScript is required.</noscript>
 <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+  <symbol id="route-icon" viewBox="0 0 24 24"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="6" r="3"/><path d="M5 15V7a3 3 0 0 1 6 0v10a3 3 0 0 0 6 0V9"/></symbol>
+  <symbol id="cannon-icon" viewBox="0 0 24 24"><path d="m4 11 15-7 2 4-15 6Z M18 4l3-1 2 5-3 1 M10 16l9 5h3"/><circle cx="8" cy="18" r="4"/><circle cx="8" cy="18" r="1"/></symbol>
   <symbol id="crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v6m0 8v6M2 12h6m8 0h6"/></symbol>
   <symbol id="marker-flag" viewBox="0 0 24 24"><path d="M5 22V2m0 1h14l-4 5 4 5H5"/></symbol>
   <symbol id="bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4Z"/></symbol>
