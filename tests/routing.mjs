@@ -32,6 +32,22 @@ const real=buildRoadGraph(roads), zone=controlZones.bakurani[0];
 // Tower 2's access roads reach its perimeter and join below the bridge deck.
 assert(snapToRoad(buildRoadGraph(ozetiRoads),{x:100.34,y:59.25}).gap<25,'Ozeti tower 2 roads missing');
 assert(ozetiRoads.find(r=>r.id==='south-tower2-west-road').points[0][1]<=60.12,'Tower access incorrectly joins the bridge deck');
+// Short road mouths must connect; the two main-road crossings have four arms.
+const ozetiGraph=buildRoadGraph(ozetiRoads);
+for(const [a,b] of [
+  [{x:100.63,y:58.49},{x:100.76,y:58.48}],
+  [{x:100.88,y:62.65},{x:100.99,y:62.61}],
+  [{x:102.99,y:63.43},{x:102.9,y:63.62}],
+]) {
+  const r=findRoadRoute(ozetiGraph,a,b);
+  assert.equal(r.status,'ok');
+  assert(r.distance<30&&r.start.gap<2&&r.end.gap<2,'Ozeti short junction requires a detour');
+}
+for(const [x,y] of [[104.06,65.32],[115.27,66.94]]) {
+  const i=ozetiGraph.nodes.findIndex(p=>p.x===x&&p.y===y);
+  assert(i>=0&&ozetiGraph.edges.filter(e=>e.a===i||e.b===i).length===4,'Ozeti crossing must have four arms');
+}
+assert.deepEqual(ozetiRoads.find(r=>r.id==='feedback2-church-main').points.at(-1),ozetiRoads.find(r=>r.id==='town-east-field-path').points[0],'Crossing has a triangular bypass');
 // The marked farm junction is one node; old triangle and false riverbank road must stay removed.
 for(const id of ['south-farm-road-north','south-farm-village-west','south-farm-village-west-north-entry','south-farm-village-west-east-link'])
   assert(roads.find(r=>r.id===id).points.some(([x,y])=>x===81.58&&y===50.30),`${id}: farm junction split again`);

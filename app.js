@@ -1,7 +1,7 @@
 import { maps, outsideControlZone, defaultSavedPositions, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, mortarRange, mortarMil, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=spawn-3';
-import { roads as bakuraniRoads } from './roads-bakurani.mjs?v=roads-16';
-import { roads as ozetiRoads } from './roads-ozeti.mjs?v=roads-16';
-import { roads as zestafonaRoads } from './roads-zestafona.mjs?v=roads-16';
+import { roads as bakuraniRoads } from './roads-bakurani.mjs?v=roads-17';
+import { roads as ozetiRoads } from './roads-ozeti.mjs?v=roads-17';
+import { roads as zestafonaRoads } from './roads-zestafona.mjs?v=roads-17';
 import { buildRoadGraph, findRoadRoute } from './routing.mjs?v=roads-1';
 
 const $ = id => document.getElementById(id);
