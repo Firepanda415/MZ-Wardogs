@@ -29,6 +29,9 @@ const junction=graph([[[0,0],[5,0],[10,0]],[[5,0],[5,5]]]);
 near(findRoadRoute(junction,{x:3,y:0},{x:5,y:4}).distance,600);
 
 const real=buildRoadGraph(roads), zone=controlZones.bakurani[0];
+// Tower 2's access roads reach its perimeter and join below the bridge deck.
+assert(snapToRoad(buildRoadGraph(ozetiRoads),{x:100.34,y:59.25}).gap<25,'Ozeti tower 2 roads missing');
+assert(ozetiRoads.find(r=>r.id==='south-tower2-west-road').points[0][1]<=60.12,'Tower access incorrectly joins the bridge deck');
 // The marked farm junction is one node; old triangle and false riverbank road must stay removed.
 for(const id of ['south-farm-road-north','south-farm-village-west','south-farm-village-west-north-entry','south-farm-village-west-east-link'])
   assert(roads.find(r=>r.id===id).points.some(([x,y])=>x===81.58&&y===50.30),`${id}: farm junction split again`);
