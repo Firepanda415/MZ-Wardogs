@@ -1,1 +1,4 @@
 /assets/maps/**/*.tmp
+/desktop/node_modules/
+/desktop/dist/
+/desktop/bin/

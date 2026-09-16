@@ -66,6 +66,39 @@ for(const id of ['zestafona-south-village1-lane','zestafona-south-village1-main'
 const fieldMouth=findRoadRoute(buildRoadGraph(zestafonaRoads),{x:66.92,y:109.02},{x:67.18,y:108.98});
 assert.equal(fieldMouth.status,'ok');
 assert(fieldMouth.distance<40&&fieldMouth.end.gap<3,'Northwest field-spur junction is disconnected');
+// Road mouths must allow local turns, not a detour around the surrounding fields.
+for(const [data,cases] of [
+  [roads,[
+    [[79.41,47.4],[79.08,47.5],55],
+    [[78.74,44.99],[78.27,45.25],85],
+    [[78.33,43.49],[78,43.5],55],
+    [[79.87,40.85],[79.98,40.18],90],
+    [[82.72,49.99],[83.31,50.4],130],
+    [[47,76.95],[46.3,76.94],85],
+    [[46.95,76.14],[46.25,76.28],100],
+    [[47.6,75.56],[47.01,75.73],85],
+    [[47.76,75.29],[47.51,74.99],80],
+    [[67.75,70.17],[67.21,70.42],90],
+    [[66.49,71.45],[65.98,71.19],85],
+  ]],
+  [ozetiRoads,[
+    [[105.58,62.91],[105.79,62.46],85],
+    [[77.94,81.34],[78.5,81.94],110],
+  ]],
+  [zestafonaRoads,[
+    [[71,89.32],[69.91,94.13],560],
+    [[75.1,87.13],[75.12,91.26],450],
+    [[68.42,81.03],[67.93,79.95],130],
+  ]],
+]) {
+  const g=buildRoadGraph(data);
+  for(const [a,b,limit] of cases) {
+    const r=findRoadRoute(g,{x:a[0],y:a[1]},{x:b[0],y:b[1]});
+    assert.equal(r.status,'ok');
+    assert(r.start.gap<2&&r.end.gap<2&&r.distance<limit,`Road mouth ${a} / ${b}: ${r.distance} m`);
+  }
+}
+assert(!zestafonaRoads.some(r=>r.id==='zestafona-ne-farm9'),'Field-interior loop returned');
 // The blue base uses its visible northwest diagonal, not the old westward detour.
 const blueExit=findRoadRoute(real,{x:87.34,y:32.54},{x:83.15,y:36.85});
 assert.equal(blueExit.status,'ok');

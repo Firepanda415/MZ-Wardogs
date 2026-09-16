@@ -1,7 +1,7 @@
 import { maps, outsideControlZone, defaultSavedPositions, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, mortarRange, mortarMil, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=spawn-3';
-import { roads as bakuraniRoads } from './roads-bakurani.mjs?v=roads-17';
-import { roads as ozetiRoads } from './roads-ozeti.mjs?v=roads-17';
-import { roads as zestafonaRoads } from './roads-zestafona.mjs?v=roads-17';
+import { roads as bakuraniRoads } from './roads-bakurani.mjs?v=roads-18';
+import { roads as ozetiRoads } from './roads-ozeti.mjs?v=roads-18';
+import { roads as zestafonaRoads } from './roads-zestafona.mjs?v=roads-18';
 import { buildRoadGraph, findRoadRoute } from './routing.mjs?v=roads-1';
 
 const $ = id => document.getElementById(id);
@@ -22,7 +22,7 @@ let perMap = {}, saved = [], savePoint = null, toastTimer, blockedStorage = fals
 let defaultSavedInitialized = false;
 const roadsByMap={bakurani:bakuraniRoads,ozeti:ozetiRoads,zestafona:zestafonaRoads};
 const roadGraphs=Object.fromEntries(Object.entries(roadsByMap).map(([id,roads])=>[id,buildRoadGraph(roads)]));
-let navigation=false, roadRoute=null;
+let navigation=false, roadRoute=null, compactOverlay=false;
 Object.assign(strings.zh,{navigation:'导航',routeEmpty:'用「自己」「目标」点选或输入起终点',routeUnavailable:'此地图尚无道路数据',routeDisconnected:'起终点吸附的道路尚未连通',routeDistance:'沿路',routeGap:'离路距离',routeNote:'虚线为离路直连；通行待实测',routeFit:'查看路线',routeHelp:'导航：使用自己和目标作为起终点，自动吸附到最近道路。亮线是沿路路线，虚线连接原坐标与道路，不计入沿路距离。三张地图均已录入可辨认道路；底图描线，实际通行待核对。'});
 Object.assign(strings.en,{navigation:'Navigate',routeEmpty:'Set You and Target by tapping or entering coordinates',routeUnavailable:'No road data for this map yet',routeDisconnected:'Snapped roads are not connected',routeDistance:'By road',routeGap:'Off road',routeNote:'Dashed: off-road connectors; access unverified',routeFit:'Show route',routeHelp:'Navigate uses You and Target as endpoints and snaps each to the nearest road. The bright line follows roads; dashed connectors are excluded from road distance. Road data is available for all three maps. Traced from imagery; access needs in-game verification.'});
 Object.assign(strings.zh,{navigation:'路线导航',navigationBack:'返回炮击',quickInput:'快捷输入',bases:'基地',routeStart:'设为起点',routeEnd:'设为终点',routeEmpty:'用快捷输入，或点选自己与目标',routeHelp:'点击地图右下角「路线导航」进入导航界面。「快捷输入」列出当前地图的三家基地和收藏点，可分别设为起点或终点。自己和目标坐标与炮击界面共用。起终点吸附到最近道路，亮线为沿路路线，虚线是未验证可通行性的离路连接，不计入沿路距离。三张地图均已录入可辨认道路；林下小径与车辆通行仍需实测。'});
@@ -125,8 +125,8 @@ function update() {
   }
   $('distance-ruler').replaceChildren();
   const mil=result && weaponId==='mortar' ? mortarMil(result.distance) : null;
-  $('distance-ruler').hidden = !result || weaponId!=='mortar';
-  if(result && weaponId==='mortar') {
+  $('distance-ruler').hidden = compactOverlay || !result || weaponId!=='mortar';
+  if(!compactOverlay && result && weaponId==='mortar') {
     // ponytail: native SVG at screenshot coordinates; no fitted ballistics or extrapolated labels.
     const first=mil===null ? 150 : Math.max(150,Math.min(850,Math.round(mil/50)*50-50));
     const top=(mil===null ? 440 : Math.min(440,576+(first-mil)*2.18-24))-24;
@@ -158,7 +158,7 @@ function update() {
   }
   $('weapon-range').textContent = `${weapons[weaponId].min}–${weapons[weaponId].max} m`;
   $('saved-count').textContent = saved.filter(p => p.mapId === mapId).length;
-  roadRoute=navigation&&roadGraphs[mapId]&&origin&&target ? findRoadRoute(roadGraphs[mapId],origin,target) : null;
+  roadRoute=!compactOverlay&&navigation&&roadGraphs[mapId]&&origin&&target ? findRoadRoute(roadGraphs[mapId],origin,target) : null;
   $('navigation').setAttribute('aria-pressed',String(navigation));
   $('route-panel').hidden=!navigation;
   $('navigation').querySelector('span').textContent=t(navigation?'navigationBack':'navigation');
@@ -167,6 +167,7 @@ function update() {
   $('route-fit').disabled=roadRoute?.status!=='ok';
   $('route-summary').textContent=!roadGraphs[mapId] ? t('routeUnavailable') : roadRoute?.status==='ok' ? `${t('routeDistance')} ${Math.round(roadRoute.distance)} m · ${t('routeGap')} ${Math.round(roadRoute.start.gap)} + ${Math.round(roadRoute.end.gap)} m` : t(roadRoute?.status==='disconnected'?'routeDisconnected':'routeEmpty');
   $('route-note').hidden=!roadGraphs[mapId];
+  window.wardogsOverlay?.setSolution(result ? {distance:result.distance,bearing:result.bearing,weaponId} : null);
   updateMode(); draw();
 }
 function updateMode() {
@@ -269,6 +270,7 @@ function draw() {
 }
 function renderMap() {
   frame = 0;
+  if(compactOverlay)return;
   const {x,y,scale:s,width:w,height:h} = camera;
   if (!w || !h || !s) return;
   const left=x-w/(2*s),top=-y-h/(2*s),right=left+w/s,bottom=top+h/s;
@@ -329,16 +331,16 @@ function renderMap() {
     const path=points=>points.map(p=>`${p.x},${-p.y}`).join(' ');
     const attrs={fill:'none','vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':'round','pointer-events':'none'};
     const network=svg('g',{id:'road-network','aria-label':lang==='zh'?'道路描线':'Traced roads'});
-    for(const road of roadsByMap[mapId])network.append(svg('polyline',{...attrs,'data-road':road.id,points:path(road.points.map(([x,y])=>({x,y}))),stroke:'#86bdcd','stroke-width':2,'stroke-opacity':.7}));
+    for(const road of roadsByMap[mapId])network.append(svg('polyline',{...attrs,'data-road':road.id,points:path(road.points.map(([x,y])=>({x,y}))),stroke:'#86bdcd','stroke-width':1.6,'stroke-opacity':.55}));
     overlays.append(network);
     if(roadRoute?.status==='ok') {
       const points=path(roadRoute.path);
-      overlays.append(svg('polyline',{...attrs,points,stroke:'#102228','stroke-width':7}));
-      overlays.append(svg('polyline',{...attrs,id:'navigation-route',points,stroke:'#70e6ff','stroke-width':4}));
+      overlays.append(svg('polyline',{...attrs,points,stroke:'#211b0c','stroke-width':7}));
+      overlays.append(svg('polyline',{...attrs,id:'navigation-route',points,stroke:'#ffd34e','stroke-width':4}));
     }
     if(roadRoute?.start)for(const [p,snap] of [[origin,roadRoute.start],[target,roadRoute.end]]) {
-      overlays.append(svg('polyline',{...attrs,class:'road-connector',points:path([p,snap]),stroke:'#f0d89a','stroke-width':2,'stroke-dasharray':'4 5'}));
-      overlays.append(svg('circle',{cx:snap.x,cy:-snap.y,r:4/s,fill:'#70e6ff',stroke:'#102228','stroke-width':1.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      overlays.append(svg('polyline',{...attrs,class:'road-connector',points:path([p,snap]),stroke:'#ffd34e','stroke-opacity':.75,'stroke-width':2,'stroke-dasharray':'4 5'}));
+      overlays.append(svg('circle',{cx:snap.x,cy:-snap.y,r:4/s,fill:'#ffd34e',stroke:'#211b0c','stroke-width':1.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     }
   }
   if(origin&&!navigation){
@@ -569,4 +571,9 @@ if (!defaultSavedInitialized && !blockedStorage) {
   defaultSavedInitialized = true;
   persist();
 }
+window.wardogsOverlay?.onState(state=>{
+  if(compactOverlay===state.compact)return;
+  compactOverlay=state.compact===true;
+  update();
+});
 writeInputs();translate();fit();loadMap();

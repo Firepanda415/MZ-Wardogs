@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><title>MZ 全屏瞄具</title><link rel="stylesheet" href="./sight.css"><script type="module" src="./sight.mjs"></script></head>
+<body>
+  <svg id="sight" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3840 2160" aria-label="L81 目标瞄具覆盖"></svg>
+  <div id="readout" role="status"></div>
+  <section id="calibration" hidden aria-label="瞄具校准">
+    <strong>对齐游戏中央准星与两侧刻线</strong>
+    <label>比例 <input id="scale" type="number" min="50" max="200" step="0.5" value="100">%</label>
+    <label>左右 <input id="offsetX" type="number" min="-2000" max="2000" step="1" value="0">px</label>
+    <label>上下 <input id="offsetY" type="number" min="-2000" max="2000" step="1" value="0">px</label>
+    <label title="越往右越实">不透明度 <input id="opacity" type="range" min="30" max="100" step="5" value="80"></label>
+    <button id="reset">重置校准</button><button id="done">完成 · 鼠标穿透</button><button id="map">关闭瞄具</button>
+    <small>~+F1 校准/穿透 · ~+F2 瞄具开关 · ~+F3 全部隐藏</small>
+  </section>
+</body></html>

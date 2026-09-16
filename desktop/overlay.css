@@ -1,0 +1,25 @@
+#overlay-toolbar{display:flex;align-items:center;gap:4px;height:38px;padding:3px 8px;background:#202920;border-bottom:1px solid #4b5640;font:12px "Segoe UI","Microsoft YaHei",sans-serif}
+#overlay-toolbar button{min-height:28px;padding:3px 6px;font-size:12px}
+#overlay-toolbar label{display:flex;align-items:center;gap:3px;margin-left:auto;font-size:10px;white-space:nowrap}
+#overlay-opacity{width:48px;accent-color:#d0df9a}
+.overlay-drag{app-region:drag;-webkit-app-region:drag;flex:1;min-width:55px;user-select:none;font-weight:700;color:#d0df9a}
+#overlay-hints{display:flex;align-items:center;height:24px;background:#171e17}
+#overlay-help{flex:1;min-width:0;height:24px;padding:4px 10px;color:#b8c7b1;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#overlay-hints #saved-open{flex-shrink:0;min-height:22px;padding:1px 8px;font-size:11px;gap:4px}
+#overlay-hints .icon{width:14px;height:14px}#overlay-hints .count{padding:0 4px}
+#app{height:calc(100dvh - 62px);min-height:0;padding:0 10px 6px}
+.topbar{min-height:36px}.topbar h1{font-size:11px}.topbar .brand-mark{display:none}.header-actions button{min-height:30px}
+.readout{padding:6px 0;gap:12px}.selection{padding:6px 0;gap:8px}.selection select{height:32px}.selection .weapon-range strong{height:32px}
+.metric-value output{font-size:32px}.unit,.direction{font-size:16px}.map-panel,body.map-only .map-panel{min-height:130px}
+footer{display:none}.coordinates{padding-bottom:0}.coordinate-heading small{display:none}
+body.overlay-compact :is(.topbar,#map-panel,#route-panel,#quick-open,.distance-ruler,.compass){display:none!important}
+body.overlay-compact #app{height:auto;padding-bottom:6px}
+body.overlay-compact .map-header{display:block;padding:0}
+body.overlay-compact .map-header .selection{display:flex;flex-direction:row;align-items:end;padding:6px 0;border-top:1px solid var(--line)}
+body.overlay-compact .map-header .map-picker{display:flex;flex:1;flex-direction:column;align-items:stretch;gap:3px}
+body.overlay-compact :is(.weapon-picker,.weapon-range){display:flex}
+body.overlay-compact .readout{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:10px 0}
+body.overlay-compact .readout>.metric{grid-column:auto;grid-row:auto}
+body.overlay-compact .readout .metric-value output{font-size:32px}
+body.overlay-compact .readout>.bearing-metric{padding-left:12px;border-left:1px solid var(--line)}
+body.overlay-compact .coordinates{display:grid}
