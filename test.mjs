@@ -70,7 +70,7 @@ for(const patch of [{type:'<script>'},{type:'constructor'},{mapId:'missing'},{id
 assert.ok(!validMarker(null));
 console.log('Passed: calculations, bounds, tower/spawn data and saved marker validation.');
 
-assert.deepEqual(landmarks.map(({mapId,x,y})=>({mapId,x,y})),[{mapId:"bakurani",x:84.53,y:71.43},{mapId:"bakurani",x:78.72,y:71.74},{mapId:"ozeti",x:101.19,y:63.00}]);
+assert.deepEqual(landmarks.map(({mapId,x,y})=>({mapId,x,y})),[{mapId:"bakurani",x:84.53,y:71.43},{mapId:"bakurani",x:78.72,y:71.74},{mapId:"ozeti",x:101.19,y:63.00},{mapId:"ozeti",x:97.72,y:65.43}]);
 for(const p of landmarks) assert.ok(validPoint(p,maps[p.mapId]));
 
 assert.equal(controlZones.bakurani.length,1);

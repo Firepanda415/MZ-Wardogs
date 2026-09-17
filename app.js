@@ -1,4 +1,4 @@
-import { maps, outsideControlZone, defaultSavedPositions, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, mortarRange, mortarMil, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=spawn-3';
+import { maps, outsideControlZone, defaultSavedPositions, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, mortarRange, mortarMil, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=landmarks-4';
 import { roads as bakuraniRoads } from './roads-bakurani.mjs?v=roads-18';
 import { roads as ozetiRoads } from './roads-ozeti.mjs?v=roads-18';
 import { roads as zestafonaRoads } from './roads-zestafona.mjs?v=roads-18';
@@ -19,7 +19,7 @@ Object.assign(strings.en,{place:'Target',placeOrigin:'You',outside:'Choose a pos
 let lang = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
 let mapId = 'bakurani', weaponId = 'mortar', mode = 'browse', mapOnly = false;
 let perMap = {}, saved = [], savePoint = null, toastTimer, blockedStorage = false;
-let defaultSavedInitialized = false;
+let defaultSavedVersion = 0;
 const roadsByMap={bakurani:bakuraniRoads,ozeti:ozetiRoads,zestafona:zestafonaRoads};
 const roadGraphs=Object.fromEntries(Object.entries(roadsByMap).map(([id,roads])=>[id,buildRoadGraph(roads)]));
 let navigation=false, roadRoute=null, compactOverlay=false;
@@ -50,13 +50,13 @@ try {
     }
     saved = data.saved.filter(p => p && typeof p.id === 'string' && typeof p.name === 'string' && p.name.trim() && p.name.length <= 60 && Object.hasOwn(maps,p.mapId) && validPoint(p,maps[p.mapId]));
     markers = Array.isArray(data.markers) ? data.markers.filter(validMarker) : [];
-    defaultSavedInitialized = data.defaultSavedInitialized === true;
+    defaultSavedVersion = Number.isSafeInteger(data.defaultSavedVersion) && data.defaultSavedVersion >= 0 ? data.defaultSavedVersion : data.defaultSavedInitialized === true ? 1 : 0;
   }
 } catch { blockedStorage = true; setTimeout(() => toast(t('storageCorrupt')), 0); }
 
 function persist() {
   if (blockedStorage) return;
-  try { localStorage.setItem(storageKey, JSON.stringify({ version:1,lang,mapId,weaponId,perMap,saved,markers,defaultSavedInitialized })); }
+  try { localStorage.setItem(storageKey, JSON.stringify({ version:1,lang,mapId,weaponId,perMap,saved,markers,defaultSavedVersion })); }
   catch { toast(t('storageError')); }
 }
 function toast(text, undo) {
@@ -369,7 +369,7 @@ function renderMap() {
   for(const landmark of landmarks.filter(p=>p.mapId===mapId)) {
     const label=landmark[lang];
     const g=svg('g',{'data-landmark':landmark.id,transform:`translate(${landmark.x} ${-landmark.y}) scale(${1/s})`,role:'img','aria-label':`${label} · X ${landmark.x.toFixed(2)} · Y ${landmark.y.toFixed(2)}`,'pointer-events':'none'});
-    g.append(svg('title',{},label),s>=12 ? svg('path',{d:landmark.id==='factory'?'M-7 6V-2L-2-5V-2L3-5V0H7V6ZM4 0V-9H7V0M-4 2V4M0 2V4M4 2V4':'M-5 6V-2L0-6 5-2V6ZM0-6V-11M-3-9H3M-1 6V2H1V6',fill:'#171e17',stroke:'#e8d79b','stroke-width':1.5}) : svg('rect',{x:-3,y:-3,width:6,height:6,fill:'#e8d79b'}));
+    g.append(svg('title',{},label),s>=12 ? svg('path',{d:landmark.id==='stadium'?'M-8 0a8 6 0 1 0 16 0a8 6 0 1 0-16 0ZM-4-3H4V3H-4ZM0-3V3':landmark.id==='factory'?'M-7 6V-2L-2-5V-2L3-5V0H7V6ZM4 0V-9H7V0M-4 2V4M0 2V4M4 2V4':'M-5 6V-2L0-6 5-2V6ZM0-6V-11M-3-9H3M-1 6V2H1V6',fill:'#171e17',stroke:'#e8d79b','stroke-width':1.5}) : svg('rect',{x:-3,y:-3,width:6,height:6,fill:'#e8d79b'}));
     if(s>=12) g.append(svg('text',{x:9,y:4,fill:'#f6e6b4','font-size':11,'font-weight':600,'paint-order':'stroke',stroke:'#121713','stroke-width':3,'stroke-linejoin':'round'},label));
     overlays.append(g);
   }
@@ -562,13 +562,13 @@ for (const p of saved) if (p.id === 'preset:ozeti:hilltop-church' && p.x === 101
   p.x = church.x; p.y = church.y;
   persist();
 }
-if (!defaultSavedInitialized && !blockedStorage) {
-  for (const p of defaultSavedPositions) {
+if (defaultSavedVersion < 2 && !blockedStorage) {
+  for (const p of defaultSavedPositions.filter(p=>(p.presetVersion||1)>defaultSavedVersion)) {
     if (!saved.some(item=>item.id===p.id || (item.mapId===p.mapId && item.x===p.x && item.y===p.y)))
       saved.push({id:p.id,mapId:p.mapId,x:p.x,y:p.y,name:p.zh});
   }
-  // Seed once so deleted defaults stay deleted after a reload.
-  defaultSavedInitialized = true;
+  // Seed each preset version once so deleted favorites stay deleted.
+  defaultSavedVersion = 2;
   persist();
 }
 window.wardogsOverlay?.onState(state=>{

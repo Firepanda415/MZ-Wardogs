@@ -1,5 +1,5 @@
 const { app, BrowserWindow, protocol, net, ipcMain, Menu, Tray, nativeImage, screen, shell, dialog } = require('electron');
-const {spawn}=require('node:child_process');
+const {spawn,execFile}=require('node:child_process');
 const {createInterface}=require('node:readline');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -31,7 +31,7 @@ function save(){
 }
 function trayMenu(){
   tray?.setContextMenu(Menu.buildFromTemplate([
-    {label:'显示地图 / 恢复操作',click:showMap},
+    {label:'切回面板 / 恢复操作 · ~+F4',click:showMap},
     {label:'瞄具 开 / 关 · ~+F2',click:toggleSight},
     {label:'交互 / 鼠标穿透 · ~+F1',click:()=>setInteraction(!interactive)},
     {label:'全部隐藏 / 显示 · ~+F3',click:toggleHidden},
@@ -50,7 +50,17 @@ function setInteraction(value){
   if(interactive)mapWindow.focus();
   broadcast();
 }
-function showMap(){setInteraction(true);}
+async function showMap(){
+  if(mapWindow.isMinimized())mapWindow.restore();
+  setInteraction(true);
+  mapWindow.show();mapWindow.focus();mapWindow.webContents.focus();
+  if(process.platform==='win32'&&hotkeyPath)await new Promise(resolve=>{
+    execFile(hotkeyPath,['--focus',mapWindow.getNativeWindowHandle().readBigUInt64LE().toString()],{windowsHide:true,timeout:3000},error=>{
+      if(error)console.error('Cannot activate overlay panel:',error.message);
+      resolve();
+    });
+  });
+}
 function toggleCompact(){
   if(!compact)fullBounds=mapWindow.getNormalBounds();
   compact=!compact;
@@ -86,6 +96,7 @@ async function command(name,value){
     if(Math.abs(b.height-height)>1)mapWindow.setBounds({height,y:clamp(b.y,area.y,area.y+area.height-height,area.y)});
   }
   else if(name==='hide')toggleHidden();
+  else if(name==='focus')await showMap();
   else if(name==='quit')app.quit();
   else if(name==='opacity'){
     opacity=clamp(value,.3,1,opacity);
@@ -158,6 +169,7 @@ async function start(){
         else if(line==='1')setInteraction(!interactive);
         else if(line==='2')toggleSight();
         else if(line==='3')toggleHidden();
+        else if(line==='4')showMap();
       });
       hotkeys.stderr.on('data',data=>console.error(String(data)));
       hotkeys.on('exit',()=>{clearTimeout(timer);reject(new Error('快捷键进程已退出'));shortcutErrors.push('请重启程序');broadcast();});

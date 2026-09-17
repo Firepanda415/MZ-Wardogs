@@ -42,7 +42,8 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('overlay-opacity').value = Math.round(state.opacity * 100);
     document.getElementById('overlay-opacity').parentElement.title = `不透明度 ${Math.round(state.opacity * 100)}%：越往右越实`;
     help.textContent = state.shortcutErrors.length ? `快捷键不可用：${state.shortcutErrors.join('、')}；请用托盘菜单操作。` :
-      `~+F1 交互/穿透 · ~+F2 瞄具开关 · ~+F3 全部隐藏`;
+      `~+F1 交互 · ~+F2 瞄具 · ~+F3 隐藏 · ~+F4 切回`;
+    help.title = '~+F1 交互/穿透 · ~+F2 瞄具开关 · ~+F3 全部隐藏/显示 · ~+F4 切回面板并恢复交互';
   };
   ipcRenderer.on('overlay-state', (_event, state) => showState(state));
   ipcRenderer.invoke('overlay-command', 'state').then(showState);

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-// Only the physical key left of 1 plus F1/F2/F3 is consumed. No keystrokes are recorded.
+// Only the physical key left of 1 plus F1/F2/F3/F4 is consumed. No keystrokes are recorded.
 class Chord {
     bool prefix, used;
     HashSet<int> captured = new HashSet<int>();
@@ -22,7 +22,7 @@ class Chord {
             return true;
         }
         if (captured.Contains(vk)) { if (!down) captured.Remove(vk); return true; }
-        if (down && prefix && !modified && vk >= 0x70 && vk <= 0x72) {
+        if (down && prefix && !modified && vk >= 0x70 && vk <= 0x73) {
             used = true; captured.Add(vk); action = vk - 0x6f; return true;
         }
         // Preserve normal typing when the prefix is followed by an unrelated key.
@@ -40,6 +40,12 @@ class Hotkeys {
     [DllImport("user32.dll")] static extern IntPtr CallNextHookEx(IntPtr hook, int code, IntPtr message, IntPtr data);
     [DllImport("user32.dll")] static extern bool UnhookWindowsHookEx(IntPtr hook);
     [DllImport("user32.dll")] static extern short GetAsyncKeyState(int key);
+    [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr window, out uint process);
+    [DllImport("kernel32.dll")] static extern uint GetCurrentThreadId();
+    [DllImport("user32.dll")] static extern bool AttachThreadInput(uint from, uint to, bool attach);
+    [DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr window);
+    [DllImport("user32.dll")] static extern IntPtr SetFocus(IntPtr window);
     [DllImport("user32.dll", SetLastError=true)] static extern uint SendInput(uint count, Input[] input, int size);
     [DllImport("kernel32.dll", CharSet=CharSet.Unicode)] static extern IntPtr GetModuleHandle(string name);
     static readonly Chord chord = new Chord();
@@ -65,9 +71,27 @@ class Hotkeys {
         return CallNextHookEx(hook, code, message, data);
     }
     static void Check(bool ok) { if (!ok) throw new Exception("Hotkey contract failed"); }
+    static int FocusWindow(IntPtr window) {
+        using (var queue = new Control()) {
+            IntPtr queueHandle = queue.Handle;
+            uint process, current = GetCurrentThreadId();
+            uint foreground = GetWindowThreadProcessId(GetForegroundWindow(), out process);
+            uint target = GetWindowThreadProcessId(window, out process);
+            if (target == 0) return 1;
+            bool attachedForeground = foreground != 0 && foreground != current && AttachThreadInput(current, foreground, true);
+            bool attachedTarget = target != current && target != foreground && AttachThreadInput(current, target, true);
+            try {
+                SetForegroundWindow(window); SetFocus(window);
+                return GetForegroundWindow() == window ? 0 : 1;
+            } finally {
+                if (attachedTarget) AttachThreadInput(current, target, false);
+                if (attachedForeground) AttachThreadInput(current, foreground, false);
+            }
+        }
+    }
     static void Test() {
         int action; bool replay;
-        for (int f = 0x70; f <= 0x72; f++) {
+        for (int f = 0x70; f <= 0x73; f++) {
             var c = new Chord();
             Check(!c.Key(f, 0, true, false, out action, out replay) && action == 0);
             Check(c.Key(0xc0, 0x29, true, false, out action, out replay));
@@ -85,10 +109,11 @@ class Hotkeys {
         tap.Key(0xc0, 0x29, true, false, out action, out replay);
         Check(!tap.Key(0x41, 0, true, false, out action, out replay) && replay);
         Check(tap.Key(0xc0, 0x29, false, false, out action, out replay) && !replay);
-        Console.WriteLine("PASS: three held-prefix chords, repeats, release order, plain keys and modifier shortcuts.");
+        Console.WriteLine("PASS: four held-prefix chords, repeats, release order, plain keys and modifier shortcuts.");
     }
     [STAThread] static int Main(string[] args) {
         if (args.Length == 1 && args[0] == "--self-test") { Test(); return 0; }
+        if (args.Length == 2 && args[0] == "--focus") return FocusWindow(new IntPtr(long.Parse(args[1])));
         try {
             Process parent = Process.GetProcessById(int.Parse(args[0]));
             hook = SetWindowsHookEx(13, callback, GetModuleHandle(null), 0);

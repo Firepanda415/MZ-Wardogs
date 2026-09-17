@@ -23,6 +23,10 @@ module.exports=async({mapWindow:map,sightWindow:sight,command,state,allowedFile,
     for(const [id,value] of Object.entries({'origin-x':'100','origin-y':'60','target-x':'100','target-y':'63'})){$(id).value=value;$(id).dispatchEvent(new Event('input',{bubbles:true}));}
   })()`);await settle();
   assert.equal(state().solution.distance,300,'Map coordinates must reach desktop host');
+  assert(await check(map,"!!document.querySelector('[data-landmark=stadium]')"),'Ozeti must display Stadium');
+  await check(map,"document.getElementById('saved-open').click()");
+  assert(await check(map,"/Stadium|体育场/.test(document.getElementById('saved-list').textContent)"),'Artillery favorites must include Stadium');
+  await check(map,"document.getElementById('saved-dialog').close()");
   assert(map.getSize().every((n,i)=>Math.abs(n-[440,570][i])<=2),'Default window should match the compact reference (allow DPI rounding)');
   await command('sight');assert(map.isVisible()&&sight.isVisible(),'Aiming overlay must preserve the map panel');
   assert(state().interactive&&map.isFocusable(),'Opening sights must keep coordinates editable');
@@ -47,7 +51,23 @@ module.exports=async({mapWindow:map,sightWindow:sight,command,state,allowedFile,
   assert.deepEqual(compass.bearings,[330,345,0,15,30],'Compass must wrap smoothly across north');
   assert(compass.aboveText,'Simulated compass must sit above the numeric bearing');
   assert(Math.abs(compass.positions[2]-compass.positions[1]-15*15.36)<1e-7,'Compass labels must have uniform angular spacing');
-  await command('interact');assert(sight.isFocusable()&&state().interactive);
+  await command('focus');await settle();
+  assert(state().interactive&&map.isFocused()&&map.webContents.isFocused(),'Focus shortcut must activate the interactive panel');
+  assert(sight.isVisible()&&state().sightMode,'Focus shortcut must preserve the fullscreen sight');
+  if(process.platform==='win32') {
+    const expected=map.getNativeWindowHandle().readBigUInt64LE().toString();
+    const script="Add-Type -TypeDefinition 'using System;using System.Runtime.InteropServices;public class ForegroundCheck{[DllImport(\"user32.dll\")]public static extern IntPtr GetForegroundWindow();}';Write-Output READY;$null=[Console]::ReadLine();[ForegroundCheck]::GetForegroundWindow().ToInt64()";
+    const foreground=await new Promise((resolve,reject)=>{
+      const probe=require('node:child_process').spawn('powershell.exe',['-NoProfile','-NonInteractive','-Command',script],{windowsHide:true});
+      const timeout=setTimeout(()=>{probe.kill();reject(new Error('Foreground check timed out'));},10000);
+      probe.on('error',reject);
+      require('node:readline').createInterface({input:probe.stdout}).on('line',async line=>{
+        if(line==='READY'){await command('focus');await settle();probe.stdin.end('\n');}
+        else {clearTimeout(timeout);resolve(line.trim());}
+      });
+    });
+    assert.equal(foreground,expected,'Panel must be the Windows foreground window');
+  }
   await command('calibration',{scale:1.1,offsetX:12,offsetY:-8});
   await check(sight,'new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))');
   const scaledTicks=await check(sight,"[...document.querySelectorAll('[data-mil]')].map(p=>Number(p.getAttribute('d').match(/^M[\\d.]+ ([\\d.]+)/)[1]))");
@@ -80,6 +100,9 @@ module.exports=async({mapWindow:map,sightWindow:sight,command,state,allowedFile,
   await command('sight');assert(map.isVisible()&&!sight.isVisible());
   await check(map,"document.getElementById('navigation').click()");await settle();
   assert(await check(map,"!!document.getElementById('navigation-route')"),'Navigation renders in desktop');
+  await check(map,"document.getElementById('quick-open').click()");
+  assert(await check(map,"/Stadium|体育场/.test(document.getElementById('quick-saved').textContent)"),'Navigation favorites must include Stadium');
+  await check(map,"document.getElementById('quick-dialog').close()");
   const fullSize=map.getSize();
   await check(map,"document.getElementById('overlay-compact').click()");await settle();
   assert(state().compact&&map.getSize()[1]<=322,'Compact button must shrink the window');
@@ -89,8 +112,10 @@ module.exports=async({mapWindow:map,sightWindow:sight,command,state,allowedFile,
   assert(await check(map,"document.getElementById('overlay-toolbar').scrollWidth<=innerWidth&&document.querySelector('.coordinates').getBoundingClientRect().bottom<=innerHeight"),'Compact toolbar and inputs must fit');
   assert(await check(map,"innerHeight-document.querySelector('.coordinates').getBoundingClientRect().bottom<=10"),'Compact window must fit content without excess bottom margin');
   assert(await check(map,"document.getElementById('saved-open').parentElement.id==='overlay-hints'"),'Compact favorites belong on the shortcut row');
+  assert(await check(map,"document.getElementById('overlay-help').scrollWidth<=document.getElementById('overlay-help').clientWidth"),'All four shortcut hints must fit beside compact favorites');
   await check(map,"document.getElementById('saved-open').click()");
   assert(await check(map,"document.getElementById('saved-dialog').open"),'Compact favorites must open the shared collection');
+  assert(await check(map,"/Stadium|体育场/.test(document.getElementById('saved-list').textContent)"),'Compact favorites must include Stadium');
   await check(map,"document.getElementById('saved-dialog').close()");
   await check(map,"document.getElementById('map').value='bakurani';document.getElementById('map').dispatchEvent(new Event('change'))");await settle();
   await check(map,"document.getElementById('map').value='ozeti';document.getElementById('map').dispatchEvent(new Event('change'))");await settle();
@@ -105,6 +130,13 @@ module.exports=async({mapWindow:map,sightWindow:sight,command,state,allowedFile,
   assert.equal(await check(map,"document.getElementById('target-y').value"),'63.1','Switching layout must preserve coordinates');
   assert(await check(map,"document.body.classList.contains('navigation-mode')&&!!document.getElementById('navigation-route')"),'Restore previous navigation view');
   await command('sight');
+  await command('interact');await command('hide');
+  await command('focus');await settle();
+  assert(map.isVisible()&&map.isFocused()&&state().interactive&&!sight.isVisible(),'Focus must recover a hidden click-through panel without opening the sight');
+  map.minimize();
+  await command('focus');await settle();
+  assert(!map.isMinimized()&&map.isFocused(),'Focus must restore a minimized panel');
+  await command('focus');assert(state().interactive,'Repeated focus must not toggle click-through');
   map.setSize(440,520);await settle();
   assert(await check(map,"document.querySelector('#map-canvas').getBoundingClientRect().height>=130"),'Small window retains usable map');
   fs.writeFileSync(path.join(output,'map-small.png'),(await map.webContents.capturePage()).toPNG());
@@ -114,6 +146,14 @@ module.exports=async({mapWindow:map,sightWindow:sight,command,state,allowedFile,
   assert.equal(await check(sight,"document.querySelectorAll('[data-mil]').length"),0,'Out-of-range targets must not display aiming marks');
   assert.deepEqual(state().shortcutErrors,[],'Native shortcut helper must start');
   assert(execFileSync(hotkeyPath,['--self-test'],{encoding:'utf8',windowsHide:true}).includes('PASS:'),'Held-prefix shortcuts must pass their input contracts');
+  await check(map,`localStorage.setItem('mz-wardogs-v1',JSON.stringify({version:1,lang:'zh',mapId:'ozeti',defaultSavedInitialized:true,saved:[{id:'custom',name:'Camp',mapId:'ozeti',x:98,y:65}]}))`);
+  await map.loadURL('wardogs://app/index.html');await settle();
+  const upgraded=await check(map,"JSON.parse(localStorage.getItem('mz-wardogs-v1'))");
+  assert.deepEqual(upgraded.saved.map(p=>p.id),['custom','preset:ozeti:stadium'],'Upgrade must preserve custom favorites and deleted older presets');
+  assert.equal(upgraded.defaultSavedVersion,2);
+  await check(map,"document.getElementById('saved-open').click();[...document.querySelectorAll('#saved-list article')].find(r=>r.textContent.includes('体育场')).querySelector('.saved-actions button:last-child').click()");
+  await map.loadURL('wardogs://app/index.html');await settle();
+  assert.deepEqual(await check(map,"JSON.parse(localStorage.getItem('mz-wardogs-v1')).saved.map(p=>p.id)"),['custom'],'Deleted Stadium must stay deleted after reload');
   console.log('PASS: offline maps, sandbox, solution relay, calibrated sight, interaction/hide, opacity, navigation, compact mode, shortcuts.');
   console.log('Screenshots: '+output+'; loaded assets: '+root);
 };
