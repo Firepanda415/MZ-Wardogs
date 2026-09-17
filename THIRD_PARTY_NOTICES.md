@@ -11,7 +11,7 @@ This project adapts the following upstream data into `core.mjs`:
 - Map bounds and tile calibration from [maps/](https://github.com/apollyon-sys/wardogs-calculator/tree/ef7cf2d8cb637532b1595b634b87469be6f507b4/maps). Only the required fields are retained.
 - Minimum and maximum SPH-2 ranges from [data/weapons.json](https://github.com/apollyon-sys/wardogs-calculator/blob/ef7cf2d8cb637532b1595b634b87469be6f507b4/data/weapons.json), converted from kilometers to meters.
 
-Original WebP map tiles were downloaded from the upstream public asset service, `assets.wardogs-artillery.com/releases/assets-v1/`, using URLs supplied by the map configuration. They are bundled in `assets/maps/` and served by this project's own host; the application makes no runtime requests to the upstream tile service. The bundle covers playable bounds at zoom levels 0–7, without re-encoding. `assets/maps/manifest.json` records the source URL, download time and each file's SHA-256. The asset release is separate from the pinned source-code snapshot.
+Original WebP map tiles were downloaded from the upstream public asset service, `assets.wardogs-artillery.com/releases/assets-v1/`, using URLs supplied by the map configuration. The unchanged originals are stored in `assets/maps/` for tracing and review. Display copies in `assets/maps-display/` are encoded as WebP at quality 88 with unchanged pixel dimensions, tile positions and zoom levels 0–7. A source file is copied unchanged when re-encoding would increase its size. Only display copies are included in website and desktop distributions. The application makes no runtime requests to the upstream tile service. `assets/maps/manifest.json` records the source URL, download time and each file's SHA-256. `assets/maps-display/manifest.json` records compression settings, source hashes, output hashes and the cache revision. The asset release is separate from the pinned source-code snapshot.
 
 Thank you to Apollyon for making the original tool and data available. This project is maintained independently; changes in this repository are the responsibility of its maintainers.
 
@@ -19,7 +19,9 @@ Thank you to Apollyon for making the original tool and data available. This proj
 
 All current tower, landmark and Control Zone coordinates, plus spawn corners and icon positions on all three maps, are measured from maintainer-supplied gameplay screenshots. Measurements and screenshot filenames are documented in README.md.
 
-Road centerline coordinates and junctions are traced and reviewed locally from the credited map imagery. No third-party road-coordinate dataset is imported. These traces are separate from the gameplay screenshot measurements and do not change ownership of the underlying imagery.
+Road centerlines and junctions are traced from the credited map imagery. Selected coordinates were refined using MetaForge's public 3D road-corridor samples on September 17, 2026. These traces are separate from the gameplay screenshot measurements and do not change ownership of the underlying imagery or source data.
+
+The 3D references are [Bakurani](https://metaforge.app/wardogs/map/bakurani/3d), [Ozeti](https://metaforge.app/wardogs/map/ozeti/3d), and [Zestafona](https://metaforge.app/wardogs/map/zestafona/3d). The sampled dataset versions are `fb6c96cd` (kavkazi), `eae43320` (europe), and `639fe5c9` (northamerica). [The correction record](docs/road-review-3d.json) lists the source endpoints and coordinate changes. The application uses local road modules and makes no runtime requests to MetaForge. The samples include railway geometry and omit some tracks, so they were checked against imagery before use. Vehicle access has not been verified in game.
 
 [WardogTools.gg](https://wardogtools.gg/artillery/) and [MetaForge](https://metaforge.app/wardogs/map/bakurani) are references for the Sunflower Church place name. Hilltop Church is the display name chosen here. No code or icons from those services are included.
 

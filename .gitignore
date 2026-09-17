@@ -1,4 +1,6 @@
 /assets/maps/**/*.tmp
+/assets/maps-display/**/*.tmp
+__pycache__/
 /desktop/node_modules/
 /desktop/dist/
 /desktop/bin/

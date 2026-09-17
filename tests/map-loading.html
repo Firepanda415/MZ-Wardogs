@@ -18,6 +18,11 @@ try {
   const doc = frame.contentDocument, win = frame.contentWindow;
   const notice = doc.querySelector('#map-notice');
   let tile = doc.querySelector('#tiles image');
+  for(const image of doc.querySelectorAll('#base-map, #tiles image')) {
+    const url = new URL(image.getAttribute('href'), doc.baseURI);
+    check(url.pathname.includes('/assets/maps-display/'), 'Display must not request original tiles');
+    check(/^[a-f0-9]{16}$/.test(url.searchParams.get('v')), 'Display cache needs a content revision');
+  }
   tile.dispatchEvent(new win.Event('error'));
   check(!notice.hidden, 'A visible failed tile must show the retry notice');
   tile.dispatchEvent(new win.Event('load'));

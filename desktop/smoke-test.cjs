@@ -12,10 +12,12 @@ module.exports=async({mapWindow:map,sightWindow:sight,command,state,allowedFile,
   assert(allowedFile('wardogs://app/roads-ozeti.mjs?v=test'));
   const loaded=await check(map,`Promise.all(['bakurani','ozeti','zestafona'].map(async id=>{
     const module=await import('./roads-'+id+'.mjs');
-    const response=await fetch('./assets/maps/'+id+'/zoom_0/0_0.webp');
+    const {tileRoot,tileVersion}=await import('./map-assets.mjs');
+    const response=await fetch(tileRoot+'/'+id+'/zoom_0/0_0.webp?v='+tileVersion);
     return module.roads.length>200&&response.ok;
   }))`);
   assert(loaded.every(Boolean),'All maps and road modules must load offline');
+  assert(await check(map,`Array.from(document.querySelectorAll('#base-map, #tiles image')).every(image=>image.getAttribute('href')?.includes('/maps-display/')&&image.getAttribute('href').includes('?v='))`),'Visible maps must use versioned display tiles');
   assert(await check(map,"!!document.getElementById('overlay-toolbar')"));
   assert.equal(state().opacity,.8,'Fresh installs must default to the user-selected 80% opacity');
   assert.equal(await check(map,"typeof process"),'undefined','Renderer must not have Node access');

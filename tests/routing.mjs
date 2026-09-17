@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { buildRoadGraph, snapToRoad, findRoadRoute } from '../routing.mjs';
 import { roads, nonJunctionPairs } from '../roads-bakurani.mjs';
 import { roads as ozetiRoads } from '../roads-ozeti.mjs';
@@ -29,6 +30,15 @@ const junction=graph([[[0,0],[5,0],[10,0]],[[5,0],[5,5]]]);
 near(findRoadRoute(junction,{x:3,y:0},{x:5,y:4}).distance,600);
 
 const real=buildRoadGraph(roads), zone=controlZones.bakurani[0];
+const reviewedJunctions=JSON.parse(readFileSync(new URL('./road-junctions-3d.json',import.meta.url),'utf8'));
+for(const [mapId,mapRoads] of Object.entries({bakurani:roads,ozeti:ozetiRoads,zestafona:zestafonaRoads})) {
+  const roadGraph=buildRoadGraph(mapRoads);
+  for(const {start,end,maxDistance} of reviewedJunctions[mapId]) {
+    const route=findRoadRoute(roadGraph,{x:start[0],y:start[1]},{x:end[0],y:end[1]});
+    assert.equal(route.status,'ok',`${mapId}: reviewed junction disconnected`);
+    assert(route.distance<=maxDistance&&route.start.gap<3&&route.end.gap<3,`${mapId}: reviewed junction requires a detour at ${start}`);
+  }
+}
 // Tower 2's access roads reach its perimeter and join below the bridge deck.
 assert(snapToRoad(buildRoadGraph(ozetiRoads),{x:100.34,y:59.25}).gap<25,'Ozeti tower 2 roads missing');
 assert(ozetiRoads.find(r=>r.id==='south-tower2-west-road').points[0][1]<=60.12,'Tower access incorrectly joins the bridge deck');

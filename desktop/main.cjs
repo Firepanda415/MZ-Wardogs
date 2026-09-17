@@ -80,8 +80,8 @@ function allowedFile(raw){
   try{
     const url=new URL(raw),name=decodeURIComponent(url.pathname).slice(1);
     if(url.protocol!=='wardogs:'||url.hostname!=='app'||name.includes('..')||name.includes('\\'))return null;
-    const files=['index.html','style.css','app.js','core.mjs','routing.mjs','roads-bakurani.mjs','roads-ozeti.mjs','roads-zestafona.mjs','favicon.svg','desktop/overlay.css','desktop/sight.html','desktop/sight.css','desktop/sight.mjs'];
-    if(!files.includes(name)&&!/^assets\/maps\/(bakurani|ozeti|zestafona)\/zoom_[0-7]\/\d+_\d+\.webp$/.test(name))return null;
+    const files=['index.html','style.css','app.js','core.mjs','map-assets.mjs','routing.mjs','roads-bakurani.mjs','roads-ozeti.mjs','roads-zestafona.mjs','favicon.svg','desktop/overlay.css','desktop/sight.html','desktop/sight.css','desktop/sight.mjs'];
+    if(!files.includes(name)&&!/^assets\/maps-display\/(bakurani|ozeti|zestafona)\/zoom_[0-7]\/\d+_\d+\.webp$/.test(name))return null;
     return path.join(root,name);
   }catch{return null;}
 }

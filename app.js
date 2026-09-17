@@ -1,7 +1,8 @@
+import { tileRoot, tileVersion } from './map-assets.mjs';
 import { maps, outsideControlZone, defaultSavedPositions, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, mortarRange, mortarMil, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=landmarks-4';
-import { roads as bakuraniRoads } from './roads-bakurani.mjs?v=roads-18';
-import { roads as ozetiRoads } from './roads-ozeti.mjs?v=roads-18';
-import { roads as zestafonaRoads } from './roads-zestafona.mjs?v=roads-18';
+import { roads as bakuraniRoads } from './roads-bakurani.mjs?v=roads-19';
+import { roads as ozetiRoads } from './roads-ozeti.mjs?v=roads-19';
+import { roads as zestafonaRoads } from './roads-zestafona.mjs?v=roads-19';
 import { buildRoadGraph, findRoadRoute } from './routing.mjs?v=roads-1';
 
 const $ = id => document.getElementById(id);
@@ -243,7 +244,7 @@ function zoom(factor,x=camera.width/2,y=camera.height/2) {
   camera.x += before.x-after.x; camera.y += before.y-after.y;
   clampCamera(); draw();
 }
-const tileURL = (z,x,y) => `./assets/maps/${mapId}/zoom_${z}/${x}_${y}.webp`;
+const tileURL = (z,x,y) => `${tileRoot}/${mapId}/zoom_${z}/${x}_${y}.webp?v=${tileVersion}`;
 function mapNotice() {
   const notice = $('map-notice');
   const tileFailed = [...tileNodes.values()].some(tile => tile.dataset.failed === 'true');

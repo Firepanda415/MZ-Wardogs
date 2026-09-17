@@ -69,10 +69,10 @@ node scripts/vendor-maps.mjs --verify
 
 点击地图右下角「路线导航」进入导航界面，收起炮击读数与瞄准镜，保留地图选择、自己 / 目标坐标和收藏。「快捷输入」列出当前地图三家基地和全部收藏，每项可设为起点或终点。「查看路线」缩放到当前路线；「返回炮击」恢复炮击界面，坐标共用。
 
-- 路网包括 Bakurani 301 条道路折线（5142 个采样点）、Ozeti 227 条道路折线（3779 个采样点）和 Zestafona 270 条道路折线（3482 个采样点），覆盖基地、城区、农田支路及外围可辨认道路。采样点计数包含不同折线共用的路口。
+- 路网包括 Bakurani 301 条道路折线（5146 个采样点）、Ozeti 227 条道路折线（3780 个采样点）和 Zestafona 270 条道路折线（3479 个采样点），覆盖基地、城区、农田支路及外围可辨认道路。采样点计数包含不同折线共用的路口。
 - 起终点自动吸附到最近的**道路线段位置**，不要求落在路口。导航在已记录路网中按平面路长选择最短路线。
 - 黄色实线为导航路线，较细的浅蓝色线为背景路网，黄色虚线连接原坐标与吸附点。「沿路」只计算道路部分；「离路距离」分别显示起点和终点的直线接入距离，虚线不代表可通行道路。
-- 数据由高清底图描线，未经过游戏内通行验证；未纳入铁路、无法辨认的林下小径、道路限行、障碍与实时路况。相交折线只有明确共享坐标时才连通。路线不保证是整张游戏地图上的最短路线。
+- 数据由高清底图描线，部分道路与路口参考 MetaForge 3D 道路采样校正，未经过游戏内通行验证。路网未纳入铁路、无法辨认的林下小径、道路限行、障碍与实时路况。相交折线只有明确共享坐标时才连通。路线不保证是整张游戏地图上的最短路线。
 
 **数据与算法：**[roads-bakurani.mjs](roads-bakurani.mjs)、[roads-ozeti.mjs](roads-ozeti.mjs) 和 [roads-zestafona.mjs](roads-zestafona.mjs) 保存数据来源、覆盖范围及道路 `id` / `points`；坐标为游戏 X/Y，0.01 = 1 m。[routing.mjs](routing.mjs) 实现线段吸附和最短路径计算。这些文件均为本地模块，无外部服务依赖。
 
@@ -84,7 +84,7 @@ node scripts/vendor-maps.mjs --verify
 
 - 使用原生尺寸的高倍率裁图和道路叠加图逐段核对，避免把缩小后的预览像素当成原图坐标。弯道沿道路中心取点，替换偏线时同步修正相邻接头并删除重复段。
 - 区分道路、铁路与地形纹理；桥上、桥下道路按实际层级分开。连通测试只能发现断头，不能证明描线位于道路上，因此还需独立看图复核。
-- 逐区核对遗漏道路、误识别线段与近距离平行线：同一路面仅保留一条线，实际独立道路分别保留。复核以原始分辨率底图为准，避免缩放造成的视觉误判。道路数据来自本项目描线，底图版权与坐标标定来源见第三方声明。
+- 逐区核对遗漏道路、误识别线段与近距离平行线，同一路面仅保留一条线，实际独立道路分别保留。复核结合原始分辨率底图与 3D 道路采样，避免缩放造成的视觉误判。3D 采样不覆盖所有土路，也包含铁路，不能直接作为导航路网。[3D 校正记录](docs/road-review-3d.json)列出数据版本及修改坐标，数据来源见[第三方声明](THIRD_PARTY_NOTICES.md)。
 
 ## 地图实测数据（2026-09-14）
 
@@ -179,7 +179,7 @@ Bakurani 出生区依据 `20260915093804_1.jpg` 至 `20260915093923_1.jpg` 中�
 | --- | --- |
 | 地图坐标边界、瓦片与游戏坐标换算参数 | 来自该提交的 [maps/](https://github.com/apollyon-sys/wardogs-calculator/tree/ef7cf2d8cb637532b1595b634b87469be6f507b4/maps)，选取所需字段。 |
 | SPH-2 的最小 / 最大射程 | 来自该提交的 [data/weapons.json](https://github.com/apollyon-sys/wardogs-calculator/blob/ef7cf2d8cb637532b1595b634b87469be6f507b4/data/weapons.json)，从千米换算为米。 |
-| 地图瓦片 | 从上游地图配置中的 `assets.wardogs-artillery.com/releases/assets-v1/` 资源地址一次性取得，原样保存在 [assets/maps/](assets/maps/)，由本项目自己的站点按需提供。来源、下载时间和逐文件 SHA-256 见 [manifest.json](assets/maps/manifest.json)。 |
+| 地图瓦片 | 从上游地图配置中的 `assets.wardogs-artillery.com/releases/assets-v1/` 资源地址一次性取得，原样保存在 [assets/maps/](assets/maps/)，用于描路和校对。网页与桌面加载 [assets/maps-display/](assets/maps-display/) 中的压缩副本。原图来源与 SHA-256 见[原图清单](assets/maps/manifest.json)，压缩参数和文件校验值见[显示资源清单](assets/maps-display/manifest.json)。 |
 
 上游原创代码采用 [MIT License](https://github.com/apollyon-sys/wardogs-calculator/blob/ef7cf2d8cb637532b1595b634b87469be6f507b4/LICENSE)；版权声明与许可证全文保留在 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。WARDOGS 地图影像及其他游戏素材归 BULKHEAD / 相应权利人所有，不属于该 MIT 许可范围。
 
@@ -252,7 +252,7 @@ MIL 在此沿用游戏标签；毫弧度（mrad）是角度单位，1 mrad = 0.0
 
 罗盘外观参考 [游戏 HUD 截图](https://wardogsgame.net/media/wardogs/field-05.jpg)（画面顶端为 `253 W`）及 [Steam 游戏页](https://store.steampowered.com/app/1867240/WARDOGS/)。采用同样的度数加字母格式，未复制 HUD 美术素材。
 
-地图瓦片按当前可见区域从本站的 `./assets/maps/` 加载，运行时不请求上游图片服务器。浏览器缓存处理重复浏览；在线站点未预缓存的区域仍需连接本站，本地 HTTP 服务可完全断网使用。图片加载失败时显示可重试提示。归属见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+地图瓦片按当前可见区域从本站的 `./assets/maps-display/` 加载，运行时不请求上游图片服务器。网页与桌面共用 WebP quality 88 压缩副本，保持 256×256 像素、全部缩放层级及坐标标定。浏览器缓存和 CDN 缓存使用这些压缩资源，图片 URL 带有内容版本号。旧版原图缓存不会再用于新版页面，但会由浏览器按自身策略逐步淘汰。在线站点未缓存的区域仍需连接本站，本地 HTTP 服务可完全断网使用。图片加载失败时显示可重试提示。归属见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
 ## 网站
 
@@ -267,14 +267,14 @@ MIL 在此沿用游戏标签；毫弧度（mrad）是角度单位，1 mrad = 0.0
 更新地图时：
 
 1. 更新仓库里的 `assets/maps/`、`manifest.json` 和对应来源记录；下载器会跳过已校验文件，单纯再运行它不会自动发现同 URL 上被替换的上游图片。
-2. 运行 `node scripts/vendor-maps.mjs --verify`，推送更新，等待个人网站的 **Publish website** 部署成功。部署必须复制完整的 `assets/maps/`，否则图片会返回 404。
+2. 运行 `node scripts/vendor-maps.mjs --verify` 核对原图，再运行 `python scripts/compress-maps.py` 和 `python scripts/compress-maps.py --verify` 生成并核对压缩版。维护脚本需要 Python 和 Pillow（`python -m pip install Pillow`），只处理变化的图片。提交 `assets/maps-display/` 与生成的 `map-assets.mjs` 后，等待个人网站的 **Publish website** 部署成功。部署只复制压缩版，原图留在源仓库。
 3. 在 Cloudflare 选择 `mqzh.science` → **Caching → Configuration → Custom Purge → Prefix**，输入 `mqzh.science/wdtool/`（不加 `https://`），点击 **Purge**。先部署再清缓存，避免重新缓存旧文件或 404。
-4. 浏览器强制刷新后检查更新的地图图片。Cloudflare 清缓存不会删除用户浏览器已有的缓存；必要时清除该站点缓存或等待缓存过期。可用 `curl -I https://mqzh.science/wdtool/assets/maps/bakurani/zoom_0/0_0.webp` 检查状态应为 200，重复访问可观察 `CF-Cache-Status: HIT`。
+4. 浏览器强制刷新后检查更新的地图图片。Cloudflare 清缓存不会删除用户浏览器已有的缓存；必要时清除该站点缓存或等待缓存过期。可用 `curl -I https://mqzh.science/wdtool/assets/maps-display/bakurani/zoom_0/0_0.webp` 检查状态应为 200，重复访问可观察 `CF-Cache-Status: HIT`。
 
 这些设置只影响线上分发，本地断网运行不依赖 Cloudflare。
 
 
-自托管时复制 `index.html`、`style.css`、`app.js`、`core.mjs`、`roads-bakurani.mjs`、`roads-ozeti.mjs`、`roads-zestafona.mjs`、`routing.mjs`、`favicon.svg`、`THIRD_PARTY_NOTICES.md` 和完整的 `assets/maps/` 目录到任意静态 HTTP 服务即可。无需 API、上游 CDN、安装依赖或构建步骤。`scripts/vendor-maps.mjs` 是维护用的一次性下载器，正常使用与部署不需要运行；无参数执行会访问原始来源，跳过已经通过校验的文件。
+自托管时复制 `index.html`、`style.css`、`app.js`、`core.mjs`、`map-assets.mjs`、`roads-bakurani.mjs`、`roads-ozeti.mjs`、`roads-zestafona.mjs`、`routing.mjs`、`favicon.svg`、`THIRD_PARTY_NOTICES.md`、`docs/road-review-3d.json` 和完整的 `assets/maps-display/` 目录到任意静态 HTTP 服务即可。无需 API、上游 CDN、安装依赖或构建步骤。`scripts/vendor-maps.mjs` 是维护用的一次性下载器，正常使用与部署不需要运行；无参数执行会访问原始来源，跳过已经通过校验的文件。
 
 ## 已验证
 

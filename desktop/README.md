@@ -49,11 +49,13 @@ npm run build
 
 安装依赖后，也可双击仓库根目录 `Start Overlay.cmd`。快捷键组件由 Windows 自带的 .NET Framework 编译器构建，便携包已包含编译结果。
 
-`npm run build` 同时输出便携目录 `desktop/dist/MZ-Wardogs-Overlay/` 和 `desktop/dist/MZ-Wardogs-Overlay-v<版本>-win-x64.zip`，将 ZIP 上传到 Release 即可。包含全部离线地图，体积较大。构建前退出正在运行的旧便携版；构建不会删除现有目录。仅做开发构建可运行 `node build.mjs --no-zip`。
+`npm run build` 同时输出便携目录 `desktop/dist/MZ-Wardogs-Overlay/` 和 `desktop/dist/MZ-Wardogs-Overlay-v<版本>-win-x64.zip`，将 ZIP 上传到 Release 即可。包含全部地图的离线压缩瓦片。构建前退出正在运行的旧便携版。重新构建会移除便携输出目录中旧的原图副本，仓库原图保持不变。仅做开发构建可运行 `node build.mjs --no-zip`。
 
 ## 数据更新
 
-网页版和桌面开发版共用仓库根目录的 `core.mjs`、`roads-*.mjs`、`routing.mjs`、`assets/maps/` 及页面代码。**只改这一份公共源文件**，没有另一份需要手工维护的桌面数据。
+网页版和桌面开发版共用仓库根目录的 `core.mjs`、`roads-*.mjs`、`routing.mjs`、`assets/maps-display/`、`map-assets.mjs` 及页面代码。**只改这一份公共源文件**，没有另一份需要手工维护的桌面数据。
+
+原始地图保存在仓库的 `assets/maps/`，用于描路与校对。更新原图后，在仓库根目录运行 `python scripts/compress-maps.py` 生成显示副本，再运行 `python scripts/compress-maps.py --verify` 校验。维护脚本需要 Python 和 Pillow，普通用户无需安装。
 
 Release ZIP 是构建时的离线快照，不会随线上网页自动更新。修改公共数据并通过测试后，发布网页，再运行 `npm run build` 生成新的桌面 ZIP。用户解压新包，个人坐标、收藏和校准继续从 `%APPDATA%/MZ-Wardogs-Overlay` 读取，不随程序目录覆盖而丢失。
 

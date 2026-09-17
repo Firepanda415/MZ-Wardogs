@@ -25,8 +25,10 @@ jobs:
       - run: node tests/routing.mjs
       - run: |
           mkdir _site
-          cp index.html style.css app.js core.mjs roads-*.mjs routing.mjs favicon.svg THIRD_PARTY_NOTICES.md _site/
-          cp -r assets _site/
+          cp index.html style.css app.js core.mjs map-assets.mjs roads-*.mjs routing.mjs favicon.svg THIRD_PARTY_NOTICES.md _site/
+          mkdir -p _site/assets _site/docs
+          cp -r assets/maps-display _site/assets/
+          cp docs/road-review-3d.json _site/docs/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
