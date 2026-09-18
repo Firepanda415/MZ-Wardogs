@@ -16,7 +16,7 @@ try {
   let doc=frame.contentDocument;
   const data=()=>JSON.parse(localStorage.getItem(storageKey));
   const names=()=>[...doc.querySelectorAll('.saved-item strong')].map(e=>e.textContent);
-  check(data().saved.length===10,'Upgrade adds ten zone points without duplicating the existing tower');
+  check(data().saved.length===12,'Upgrade adds twelve zone points without duplicating the existing tower');
   check(data().saved.find(p=>p.id===custom.id)?.name==='My tower','Existing custom name survives');
   check(data().markers[0].id===marker.id,'Existing markers survive');
   doc.querySelector('#saved-open').click();
@@ -30,8 +30,8 @@ try {
   tower().querySelectorAll('button')[2].click();
   check(!names().includes('Tower 4'),'Default favorite can be deleted');
   await load(); doc=frame.contentDocument;
-  check(data().saved.length===9&&!data().saved.some(p=>p.id==='preset:bakurani:tower:4'),'Deleted default does not return after reload');
-  for (const [mapId,expected] of [['ozeti','Tower 1|Tower 2|Hilltop Church'],['zestafona','Tower 1|Tower 3']]) {
+  check(data().saved.length===11&&!data().saved.some(p=>p.id==='preset:bakurani:tower:4'),'Deleted default does not return after reload');
+  for (const [mapId,expected] of [['ozeti','Tower 1|Tower 2|Hilltop Church|Stadium|Pool Diving Platform'],['zestafona','Tower 1|Tower 3']]) {
     const select=doc.querySelector('#map');select.value=mapId;select.dispatchEvent(new frame.contentWindow.Event('change'));
     doc.querySelector('#saved-open').click();
     check(names().join('|')===expected,`Correct defaults for ${mapId}`);
@@ -39,7 +39,7 @@ try {
   }
   localStorage.removeItem(storageKey);
   await load(); doc=frame.contentDocument;
-  check(data().saved.length===10&&data().defaultSavedInitialized===true,'Fresh browser receives all defaults once');
+  check(data().saved.length===12&&data().defaultSavedVersion===3,'Fresh browser receives all defaults once');
   result.textContent='PASS: fresh defaults, existing-user migration, deduplication, preserved custom data, zone filtering, translations, loading and deletion persistence.';
 } catch(error) {result.textContent=`FAIL: ${error.message}`;throw error;}
 finally {if(stored===null)localStorage.removeItem(storageKey);else localStorage.setItem(storageKey,stored);}

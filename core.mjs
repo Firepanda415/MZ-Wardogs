@@ -18,6 +18,7 @@ export const landmarks = [
   {id:'factory',mapId:'bakurani',x:78.72,y:71.74,zh:'货柜工厂',en:'Container&Factory'},
   {id:'hilltop-church',mapId:'ozeti',x:101.19,y:63.00,zh:'山顶教堂',en:'Hilltop Church'},
   {id:'stadium',mapId:'ozeti',x:97.72,y:65.43,zh:'体育场',en:'Stadium',presetVersion:2},
+  {id:'pool-diving-platform',mapId:'ozeti',x:100.04,y:65.49,zh:'泳池跳台',en:'Pool Diving Platform',presetVersion:3},
 ];
 // Observed match circles measured from screenshots; not a guarantee for every match.
 export const controlZones = {bakurani: [

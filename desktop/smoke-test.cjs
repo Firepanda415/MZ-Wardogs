@@ -26,8 +26,10 @@ module.exports=async({mapWindow:map,sightWindow:sight,command,state,allowedFile,
   })()`);await settle();
   assert.equal(state().solution.distance,300,'Map coordinates must reach desktop host');
   assert(await check(map,"!!document.querySelector('[data-landmark=stadium]')"),'Ozeti must display Stadium');
+  assert(await check(map,"!!document.querySelector('[data-landmark=pool-diving-platform]')"),'Ozeti must display the pool diving platform');
   await check(map,"document.getElementById('saved-open').click()");
   assert(await check(map,"/Stadium|体育场/.test(document.getElementById('saved-list').textContent)"),'Artillery favorites must include Stadium');
+  assert(await check(map,"/Pool Diving Platform|泳池跳台/.test(document.getElementById('saved-list').textContent)"),'Artillery favorites must include the pool diving platform');
   await check(map,"document.getElementById('saved-dialog').close()");
   assert(map.getSize().every((n,i)=>Math.abs(n-[440,570][i])<=2),'Default window should match the compact reference (allow DPI rounding)');
   await command('sight');assert(map.isVisible()&&sight.isVisible(),'Aiming overlay must preserve the map panel');
@@ -104,6 +106,7 @@ module.exports=async({mapWindow:map,sightWindow:sight,command,state,allowedFile,
   assert(await check(map,"!!document.getElementById('navigation-route')"),'Navigation renders in desktop');
   await check(map,"document.getElementById('quick-open').click()");
   assert(await check(map,"/Stadium|体育场/.test(document.getElementById('quick-saved').textContent)"),'Navigation favorites must include Stadium');
+  assert(await check(map,"/Pool Diving Platform|泳池跳台/.test(document.getElementById('quick-saved').textContent)"),'Navigation favorites must include the pool diving platform');
   await check(map,"document.getElementById('quick-dialog').close()");
   const fullSize=map.getSize();
   await check(map,"document.getElementById('overlay-compact').click()");await settle();
@@ -118,6 +121,7 @@ module.exports=async({mapWindow:map,sightWindow:sight,command,state,allowedFile,
   await check(map,"document.getElementById('saved-open').click()");
   assert(await check(map,"document.getElementById('saved-dialog').open"),'Compact favorites must open the shared collection');
   assert(await check(map,"/Stadium|体育场/.test(document.getElementById('saved-list').textContent)"),'Compact favorites must include Stadium');
+  assert(await check(map,"/Pool Diving Platform|泳池跳台/.test(document.getElementById('saved-list').textContent)"),'Compact favorites must include the pool diving platform');
   await check(map,"document.getElementById('saved-dialog').close()");
   await check(map,"document.getElementById('map').value='bakurani';document.getElementById('map').dispatchEvent(new Event('change'))");await settle();
   await check(map,"document.getElementById('map').value='ozeti';document.getElementById('map').dispatchEvent(new Event('change'))");await settle();
@@ -151,11 +155,17 @@ module.exports=async({mapWindow:map,sightWindow:sight,command,state,allowedFile,
   await check(map,`localStorage.setItem('mz-wardogs-v1',JSON.stringify({version:1,lang:'zh',mapId:'ozeti',defaultSavedInitialized:true,saved:[{id:'custom',name:'Camp',mapId:'ozeti',x:98,y:65}]}))`);
   await map.loadURL('wardogs://app/index.html');await settle();
   const upgraded=await check(map,"JSON.parse(localStorage.getItem('mz-wardogs-v1'))");
-  assert.deepEqual(upgraded.saved.map(p=>p.id),['custom','preset:ozeti:stadium'],'Upgrade must preserve custom favorites and deleted older presets');
-  assert.equal(upgraded.defaultSavedVersion,2);
+  assert.deepEqual(upgraded.saved.map(p=>p.id),['custom','preset:ozeti:stadium','preset:ozeti:pool-diving-platform'],'Upgrade must preserve custom favorites and deleted older presets');
+  assert.equal(upgraded.defaultSavedVersion,3);
   await check(map,"document.getElementById('saved-open').click();[...document.querySelectorAll('#saved-list article')].find(r=>r.textContent.includes('体育场')).querySelector('.saved-actions button:last-child').click()");
   await map.loadURL('wardogs://app/index.html');await settle();
-  assert.deepEqual(await check(map,"JSON.parse(localStorage.getItem('mz-wardogs-v1')).saved.map(p=>p.id)"),['custom'],'Deleted Stadium must stay deleted after reload');
+  assert.deepEqual(await check(map,"JSON.parse(localStorage.getItem('mz-wardogs-v1')).saved.map(p=>p.id)"),['custom','preset:ozeti:pool-diving-platform'],'Deleted Stadium must stay deleted after reload');
+  await check(map,`localStorage.setItem('mz-wardogs-v1',JSON.stringify({version:1,lang:'zh',mapId:'ozeti',defaultSavedVersion:2,saved:[{id:'custom',name:'Camp',mapId:'ozeti',x:98,y:65}]}))`);
+  await map.loadURL('wardogs://app/index.html');await settle();
+  assert.deepEqual(await check(map,"JSON.parse(localStorage.getItem('mz-wardogs-v1')).saved.map(p=>p.id)"),['custom','preset:ozeti:pool-diving-platform'],'Version 2 adds only the new landmark');
+  await check(map,"document.getElementById('saved-open').click();[...document.querySelectorAll('#saved-list article')].find(r=>r.textContent.includes('泳池跳台')).querySelector('.saved-actions button:last-child').click()");
+  await map.loadURL('wardogs://app/index.html');await settle();
+  assert.deepEqual(await check(map,"JSON.parse(localStorage.getItem('mz-wardogs-v1')).saved.map(p=>p.id)"),['custom'],'Deleted pool preset must stay deleted');
   console.log('PASS: offline maps, sandbox, solution relay, calibrated sight, interaction/hide, opacity, navigation, compact mode, shortcuts.');
   console.log('Screenshots: '+output+'; loaded assets: '+root);
 };

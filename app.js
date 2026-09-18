@@ -1,5 +1,5 @@
 import { tileRoot, tileVersion } from './map-assets.mjs';
-import { maps, outsideControlZone, defaultSavedPositions, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, mortarRange, mortarMil, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=landmarks-4';
+import { maps, outsideControlZone, defaultSavedPositions, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, mortarRange, mortarMil, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=landmarks-5';
 import { roads as bakuraniRoads } from './roads-bakurani.mjs?v=roads-19';
 import { roads as ozetiRoads } from './roads-ozeti.mjs?v=roads-19';
 import { roads as zestafonaRoads } from './roads-zestafona.mjs?v=roads-19';
@@ -370,7 +370,7 @@ function renderMap() {
   for(const landmark of landmarks.filter(p=>p.mapId===mapId)) {
     const label=landmark[lang];
     const g=svg('g',{'data-landmark':landmark.id,transform:`translate(${landmark.x} ${-landmark.y}) scale(${1/s})`,role:'img','aria-label':`${label} · X ${landmark.x.toFixed(2)} · Y ${landmark.y.toFixed(2)}`,'pointer-events':'none'});
-    g.append(svg('title',{},label),s>=12 ? svg('path',{d:landmark.id==='stadium'?'M-8 0a8 6 0 1 0 16 0a8 6 0 1 0-16 0ZM-4-3H4V3H-4ZM0-3V3':landmark.id==='factory'?'M-7 6V-2L-2-5V-2L3-5V0H7V6ZM4 0V-9H7V0M-4 2V4M0 2V4M4 2V4':'M-5 6V-2L0-6 5-2V6ZM0-6V-11M-3-9H3M-1 6V2H1V6',fill:'#171e17',stroke:'#e8d79b','stroke-width':1.5}) : svg('rect',{x:-3,y:-3,width:6,height:6,fill:'#e8d79b'}));
+    g.append(svg('title',{},label),s>=12 ? svg('path',{d:landmark.id==='pool-diving-platform'?'M-6 6V-7H7V-4H-3V6M-6-1H-3M-6 3H-3M-8 9Q-5 6-2 9T4 9T10 9':landmark.id==='stadium'?'M-8 0a8 6 0 1 0 16 0a8 6 0 1 0-16 0ZM-4-3H4V3H-4ZM0-3V3':landmark.id==='factory'?'M-7 6V-2L-2-5V-2L3-5V0H7V6ZM4 0V-9H7V0M-4 2V4M0 2V4M4 2V4':'M-5 6V-2L0-6 5-2V6ZM0-6V-11M-3-9H3M-1 6V2H1V6',fill:'#171e17',stroke:'#e8d79b','stroke-width':1.5}) : svg('rect',{x:-3,y:-3,width:6,height:6,fill:'#e8d79b'}));
     if(s>=12) g.append(svg('text',{x:9,y:4,fill:'#f6e6b4','font-size':11,'font-weight':600,'paint-order':'stroke',stroke:'#121713','stroke-width':3,'stroke-linejoin':'round'},label));
     overlays.append(g);
   }
@@ -563,13 +563,13 @@ for (const p of saved) if (p.id === 'preset:ozeti:hilltop-church' && p.x === 101
   p.x = church.x; p.y = church.y;
   persist();
 }
-if (defaultSavedVersion < 2 && !blockedStorage) {
+if (defaultSavedVersion < 3 && !blockedStorage) {
   for (const p of defaultSavedPositions.filter(p=>(p.presetVersion||1)>defaultSavedVersion)) {
     if (!saved.some(item=>item.id===p.id || (item.mapId===p.mapId && item.x===p.x && item.y===p.y)))
       saved.push({id:p.id,mapId:p.mapId,x:p.x,y:p.y,name:p.zh});
   }
   // Seed each preset version once so deleted favorites stay deleted.
-  defaultSavedVersion = 2;
+  defaultSavedVersion = 3;
   persist();
 }
 window.wardogsOverlay?.onState(state=>{
