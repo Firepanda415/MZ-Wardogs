@@ -1,5 +1,5 @@
 import { tileRoot, tileVersion } from './map-assets.mjs';
-import { maps, outsideControlZone, defaultSavedPositions, tileBounds, towers, landmarks, controlZones, spawnPoints, spawnAreas, weapons, mortarRange, mortarMil, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=landmarks-5';
+import { maps, defaultSavedPositions, tileBounds, towers, landmarks, spawnPoints, spawnAreas, weapons, mortarRange, mortarMil, markerTypes, validMarker, parseCoordinate, validPoint, solution, heading, screenToWorld } from './core.mjs?v=landmarks-6';
 import { roads as bakuraniRoads } from './roads-bakurani.mjs?v=roads-19';
 import { roads as ozetiRoads } from './roads-ozeti.mjs?v=roads-19';
 import { roads as zestafonaRoads } from './roads-zestafona.mjs?v=roads-19';
@@ -318,9 +318,6 @@ function renderMap() {
     name.append(svg('tspan',{x:cx},area.name));
     g.append(name);overlays.append(g);
   }
-  for(const zone of controlZones[mapId]||[]) {
-    overlays.append(svg('circle',{'data-control-zone':zone.id,cx:zone.x,cy:-zone.y,r:zone.r,fill:'none',stroke:'#fff','stroke-opacity':.45,'stroke-width':1.5,'stroke-dasharray':'6 5','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-  }
   for(const spawn of spawnPoints[mapId]||[]) {
     const color=spawnAreas[mapId].find(area=>area.name===spawn.faction).color;
     const g=svg('g',{'data-spawn-point':spawn.id,transform:`translate(${spawn.x} ${-spawn.y}) scale(${1/s})`,fill:color,stroke:'none',role:'img','aria-label':`Spawn · X ${spawn.x.toFixed(2)} · Y ${spawn.y.toFixed(2)}`,'pointer-events':'none'});
@@ -356,14 +353,14 @@ function renderMap() {
   if(origin&&target&&!navigation) overlays.append(svg('line',{x1:origin.x,y1:-origin.y,x2:target.x,y2:-target.y,stroke:'#f0e8ce','stroke-width':1.5,'stroke-dasharray':'6 5','vector-effect':'non-scaling-stroke'}));
   for(const [number,tx,ty] of towers[mapId]) {
     const label=lang==='zh'?`${number}号塔`:`Tower ${number}`;
-    const outside=outsideControlZone(mapId,tx,ty),color=outside?'#89918a':'#e8d79b';
-    const g=svg('g',{'data-tower':number,'data-outside-zone':outside,transform:`translate(${tx} ${-ty}) scale(${1/s})`,role:'img','aria-label':`${label} · X ${tx.toFixed(2)} · Y ${ty.toFixed(2)}`,'pointer-events':'none'});
+    const color='#e8d79b';
+    const g=svg('g',{'data-tower':number,transform:`translate(${tx} ${-ty}) scale(${1/s})`,role:'img','aria-label':`${label} · X ${tx.toFixed(2)} · Y ${ty.toFixed(2)}`,'pointer-events':'none'});
     g.append(svg('title',{},label));
     g.append(svg('rect',{x:-3,y:-3,width:6,height:6,fill:color,stroke:'#171e17','stroke-width':1.5}));
     // ponytail: show labels only when zoomed in; no label-collision engine.
     if(s>=12) {
       g.append(svg('path',{d:'M-5 5 0-8 5 5M-4 2h8M-3-2h6',fill:'none',stroke:color,'stroke-width':1.5}));
-      g.append(svg('text',{x:0,y:20,'text-anchor':'middle',fill:outside?color:'#f6e6b4','font-size':11,'font-weight':600,'paint-order':'stroke',stroke:'#121713','stroke-width':3,'stroke-linejoin':'round'},label));
+      g.append(svg('text',{x:0,y:20,'text-anchor':'middle',fill:'#f6e6b4','font-size':11,'font-weight':600,'paint-order':'stroke',stroke:'#121713','stroke-width':3,'stroke-linejoin':'round'},label));
     }
     overlays.append(g);
   }
@@ -563,13 +560,13 @@ for (const p of saved) if (p.id === 'preset:ozeti:hilltop-church' && p.x === 101
   p.x = church.x; p.y = church.y;
   persist();
 }
-if (defaultSavedVersion < 3 && !blockedStorage) {
+if (defaultSavedVersion < 4 && !blockedStorage) {
   for (const p of defaultSavedPositions.filter(p=>(p.presetVersion||1)>defaultSavedVersion)) {
     if (!saved.some(item=>item.id===p.id || (item.mapId===p.mapId && item.x===p.x && item.y===p.y)))
       saved.push({id:p.id,mapId:p.mapId,x:p.x,y:p.y,name:p.zh});
   }
   // Seed each preset version once so deleted favorites stay deleted.
-  defaultSavedVersion = 3;
+  defaultSavedVersion = 4;
   persist();
 }
 window.wardogsOverlay?.onState(state=>{

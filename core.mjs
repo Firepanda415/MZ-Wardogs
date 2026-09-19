@@ -19,6 +19,7 @@ export const landmarks = [
   {id:'hilltop-church',mapId:'ozeti',x:101.19,y:63.00,zh:'山顶教堂',en:'Hilltop Church'},
   {id:'stadium',mapId:'ozeti',x:97.72,y:65.43,zh:'体育场',en:'Stadium',presetVersion:2},
   {id:'pool-diving-platform',mapId:'ozeti',x:100.04,y:65.49,zh:'泳池跳台',en:'Pool Diving Platform',presetVersion:3},
+  {id:'southwest-church',mapId:'bakurani',x:79.16,y:67.47,zh:'西南教堂',en:'Southwest Church',presetVersion:4},
 ];
 // Observed match circles measured from screenshots; not a guarantee for every match.
 export const controlZones = {bakurani: [
@@ -103,13 +104,9 @@ export function screenToWorld(x, y, view) {
   return { x: view.x + (x - view.width / 2) / view.scale, y: view.y - (y - view.height / 2) / view.scale };
 }
 
-export function outsideControlZone(mapId,x,y) {
-  const zones=controlZones[mapId];
-  return !!zones?.length && !zones.some(z=>Math.hypot(x-z.x,y-z.y)<=z.r);
-}
-
 export const defaultSavedPositions = [
   ...Object.entries(towers).flatMap(([mapId,points]) => points.map(([number,x,y]) =>
-    ({id:`preset:${mapId}:tower:${number}`,mapId,x,y,zh:`${number}号塔`,en:`Tower ${number}`}))),
+    // Version 4 adds towers excluded by the earlier control-zone filter.
+    ({id:`preset:${mapId}:tower:${number}`,mapId,x,y,zh:`${number}号塔`,en:`Tower ${number}`,presetVersion:({bakurani:[2,3],ozeti:[3,4],zestafona:[2]})[mapId].includes(number)?4:1}))),
   ...landmarks.map(p => ({...p,id:`preset:${p.mapId}:${p.id}`})),
-].filter(p => !outsideControlZone(p.mapId,p.x,p.y));
+];
